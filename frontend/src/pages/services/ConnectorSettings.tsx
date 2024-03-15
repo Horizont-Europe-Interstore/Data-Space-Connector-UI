@@ -30,7 +30,6 @@ const ConnectorSettings = () => {
         axios.get<ApiResponse[]>(`/custom-query/data-objects/?id=e48046c9-0b94-41d2-9ad4-206f1604b821`)
             .then(response => {
                 setData(response.data[0]);
-                console.log(data)
             })
             .catch(error => {
                 console.error('Error fetching media:', error);
@@ -66,7 +65,7 @@ const ConnectorSettings = () => {
                 </div>
 
                 <div className='col' >
-                    <button className="btn btn-primary" onClick={() => saveRequest()} >
+                    <button className="btn btn-primary" onClick={() => saveRequest()} data-toggle="tooltip" data-placement="top" title="Save your new configuration">
                         Save
                     </button>
                 </div>

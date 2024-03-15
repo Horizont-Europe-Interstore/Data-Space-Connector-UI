@@ -18,17 +18,17 @@ if (localStorage.getItem("token")) {
 
 interface IFilterValues {
     sqlf_10: string;
-    cf_id: string;
-    cf_title: string;
+    data_catalog_category_id: string;
+    title: string;
     sqlf_9: string;
     cf_profile_selector: string;
     cf_profile_description: string;
     sqlf_11: string;
     sqlf_12: string;
-    sqlf_4: string;
-    sqlf_8: string;
-    sqlf_6: string;
-    cf_status: string;
+    category: string;
+    created_on: string;
+    user_requesting: string;
+    status: string;
     cf_comments: string;
 }
 interface IFilter {
@@ -41,18 +41,19 @@ interface IFilter {
 }
 interface ITableData {
     sqlf_10: string;
-    cf_id: string;
-    cf_title: string;
+    data_catalog_category_id: string;
+    title: string;
     sqlf_9: string;
     cf_profile_selector: string;
     cf_profile_description: string;
     sqlf_11: string;
     sqlf_12: string;
-    sqlf_4: string;
-    sqlf_6: string;
-    sqlf_8: string;
-    cf_status: string;
+    category: string;
+    user_requesting: string;
+    created_on: string;
+    status: string;
     cf_comments: string;
+    request_id:string;
 }
 
 
@@ -66,26 +67,21 @@ const RequestedServicesList: React.FC = () => {
     const [filters, setFilters] = useState<IFilter[]>([]);
     const [activeFilter, setActiveFilter] = useState<{ parentCode: string, parentValue: string, code: string, value: string } | null>(null);
     const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
-    const [PartialApi, setPartialApi] = useState<string | null>(null);
-    const [showCategoriesModal, setShowCategoriesModal] = useState(false);
-    const [renderCategoriesModal, setRenderCategoriesModal] = useState(false);
     const [filterValues, setFilterValues] = useState<IFilterValues>({
         sqlf_10: "",
-        cf_id: "",
-        cf_title: "",
+        data_catalog_category_id: "",
+        title: "",
         sqlf_9: "",
         cf_profile_selector: "",
         cf_profile_description: "",
         sqlf_11: "",
         sqlf_12: "",
-        sqlf_4: "",
-        sqlf_6: "",
-        sqlf_8: "",
-        cf_status: "",
+        category: "",
+        user_requesting: "",
+        created_on: "",
+        status: "",
         cf_comments: ""
     });
-    /////////////////////////////////////////////////////////////////////////////
-    //const [returnedValue, setReturnedValue] = useState<string>("");
 
     const [modalStates, setModalStates] = useState({
         categoriesModal: false,
@@ -134,7 +130,7 @@ const RequestedServicesList: React.FC = () => {
 
     const generateFilterQuery = () => {
         let query = '';
-        const filterKeys: (keyof IFilterValues)[] = ['sqlf_10', 'cf_title', 'sqlf_9', 'cf_profile_selector', 'cf_profile_description', 'sqlf_11', 'sqlf_12', 'cf_id', 'sqlf_4', 'sqlf_6', 'sqlf_8', 'cf_status', 'cf_comments'];
+        const filterKeys: (keyof IFilterValues)[] = ['sqlf_10', 'title', 'sqlf_9', 'cf_profile_selector', 'cf_profile_description', 'sqlf_11', 'sqlf_12', 'data_catalog_category_id', 'category', 'user_requesting', 'created_on', 'status', 'cf_comments'];
 
         filterKeys.forEach(key => {
             if (filterValues[key]) {
@@ -344,7 +340,6 @@ const RequestedServicesList: React.FC = () => {
                     <Form onSubmit={handleSubmit}>
                         <Table striped bordered hover>
                             <thead>
-
                                 <tr>
                                     <th>#</th>
                                     <th></th>
@@ -370,9 +365,9 @@ const RequestedServicesList: React.FC = () => {
 
                                     <td><Form.Control
                                         type="text"
-                                        name="cf_title"
+                                        name="title"
                                         placeholder="Filter"
-                                        value={filterValues.cf_title}
+                                        value={filterValues.title}
                                         onChange={handleInputChange}
                                     /></td>
 
@@ -391,8 +386,6 @@ const RequestedServicesList: React.FC = () => {
                                         value={filterValues.cf_profile_description}
                                         onChange={handleInputChange}
                                     /></td>
-
-
                                     <td><Form.Control
                                         type="text"
                                         name="sqlf_11"
@@ -407,27 +400,20 @@ const RequestedServicesList: React.FC = () => {
                                         value={filterValues.sqlf_12}
                                         onChange={handleInputChange}
                                     /></td>
-
                                 </tr>
-
                                 {data.map((item, index) => (
                                     <tr key={index}>
                                         <th scope="row">{index + 1}</th>
                                         <td>
-                                            <Button variant="outline-light" className="btn btn-primary" onClick={() => EditRequest(item.cf_id)}>
+                                            <Button variant="outline-light" className="btn btn-primary" onClick={() => EditRequest(item.request_id)}>
                                                 <i className="fas fa-pencil-alt"></i>
                                             </Button>
-
                                         </td>
-
-                                        <td>{Inner(item.sqlf_4)}</td>
-                                        <td>{item.cf_title}</td>
-                                        <td>{Inner(item.sqlf_6)}</td>
-                                        <td>{item.cf_status}</td>
-
-
-                                        <td>{item.sqlf_8}</td>
-
+                                        <td>{Inner(item.category)}</td>
+                                        <td>{item.title}</td>
+                                        <td>{Inner(item.user_requesting)}</td>
+                                        <td>{item.status}</td>
+                                        <td>{item.created_on}</td>
                                         <td>{item.cf_comments}</td>
                                     </tr>
                                 ))}

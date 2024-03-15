@@ -1,4 +1,3 @@
-import {GoogleProvider} from '@app/utils/oidc-providers';
 import {createSlice} from '@reduxjs/toolkit';
 import { User } from 'oidc-client-ts';
 

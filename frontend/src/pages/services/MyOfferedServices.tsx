@@ -261,8 +261,8 @@ const MyOfferedServices: React.FC = () => {
         </div>
 
         <div className='col'>
-          <Button onClick={() => New()} className="btn btn-success">
-            New   <i className="fa fa-plus"></i>
+          <Button onClick={() => New()} className="btn btn-success" data-bs-toggle="tooltip" data-placement="top" title="Create a new offered service" >
+            New   <i className="fa fa-plus"></i> 
           </Button>
         </div>
 
@@ -275,7 +275,7 @@ const MyOfferedServices: React.FC = () => {
 
 
           <div className="input-basic mb-3" style={{ transform: "scale(0.8)", backgroundColor: "", position: "relative" }}>
-            <Dropdown drop='up'>
+            <Dropdown drop='up' data-bs-toggle="tooltip" data-placement="top" title="Select the status of the services you want visualize">
               <Dropdown.Toggle id="dropdown-basic" >
                 Service status: {visibility} {(visibility === "") && "any"}
               </Dropdown.Toggle>
@@ -409,11 +409,11 @@ const MyOfferedServices: React.FC = () => {
                     <td>
                       <div className='row d-flex flex-nowrap'>
                         <div className='col'>
-                          <Button variant="outline-light" className="btn btn-primary" onClick={() => EditService(item.cf_id)}>
+                          <Button variant="outline-light" className="btn btn-primary" onClick={() => EditService(item.cf_id)} data-bs-toggle="tooltip" data-placement="top" title="Edit your offered service">
                             <i className="fas fa-pencil-alt"></i>
                           </Button></div>
                         <div className='col'>
-                          <Button variant="outline-light" className="btn btn-primary" onClick={() => RequestedServices(item.cf_id)}>
+                          <Button variant="outline-light" className="btn btn-primary" onClick={() => RequestedServices(item.cf_id)} data-bs-toggle="tooltip" data-placement="top" title="View your offered service's requests">
                             <i className="fas fa-handshake"></i>
 
                           </Button></div>

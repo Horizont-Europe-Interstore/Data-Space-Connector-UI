@@ -39,7 +39,6 @@ interface ITableData {
   category: string;
   service: string;
   business_object_name: string;
-  cf_name_2: string;
 
   service_description: string;
   business_object_code: string;
@@ -53,10 +52,8 @@ const CrossPlatformServices: React.FC = () => {
   const [filters, setFilters] = useState<IFilter[]>([]);
   const [activeFilter, setActiveFilter] = useState<{ parentCode: string, parentValue: string, code: string, value: string } | null>(null);
   const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
-  const [PartialApi, setPartialApi] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const itemsPerPage = 10;
 
   const [filterValues, setFilterValues] = useState<IFilterValues>({
     service: "",
@@ -115,9 +112,6 @@ const CrossPlatformServices: React.FC = () => {
         }
       }
     });
-
-    //query += '&language-id=2';
-
     return query;
   };
 
@@ -288,7 +282,7 @@ const CrossPlatformServices: React.FC = () => {
                   <tr key={index}>
                     <th scope="row">{(((currentPage - 1)) * 10) + index + 1}</th>
                     <td>
-                      <Button variant="outline-light" className="btn btn-primary" onClick={() => DetailService(item.cross_platform_service_id)}>
+                      <Button variant="outline-light" className="btn btn-primary" onClick={() => DetailService(item.cross_platform_service_id)} data-bs-toggle="tooltip" data-placement="top" title="View cross-platform service details">
                         <i className="fa fa-search"></i>
                       </Button>
                     </td>

@@ -18,16 +18,16 @@ const API_URL_DATA = "/datalist/requests_on_offered_services";
 interface IFilterValues {
     sqlf_10: string;
     cf_id: string;
-    cf_title: string;
+    title: string;
     sqlf_9: string;
     cf_profile_selector: string;
     cf_profile_description: string;
     sqlf_11: string;
     sqlf_12: string;
-    sqlf_4: string;
-    sqlf_8: string;
-    sqlf_6: string;
-    cf_status: string;
+    category: string;
+    created_on: string;
+    user_requesting: string;
+    status: string;
     cf_comments: string;
 }
 interface IFilter {
@@ -41,44 +41,39 @@ interface IFilter {
 interface ITableData {
     sqlf_10: string;
     cf_id: string;
-    cf_title: string;
+    title: string;
     sqlf_9: string;
     cf_profile_selector: string;
     cf_profile_description: string;
     sqlf_11: string;
     sqlf_12: string;
-    sqlf_4: string;
-    sqlf_6: string;
-    sqlf_8: string;
-    cf_status: string;
+    category: string;
+    user_requesting: string;
+    created_on: string;
+    status: string;
     cf_comments: string;
+    request_id: string;
 }
 const Requests: React.FC = () => {
     const [data, setData] = useState<ITableData[]>([]);
     const [filters, setFilters] = useState<IFilter[]>([]);
     const [activeFilter, setActiveFilter] = useState<{ parentCode: string, parentValue: string, code: string, value: string } | null>(null);
     const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
-    const [PartialApi, setPartialApi] = useState<string | null>(null);
-    const [showCategoriesModal, setShowCategoriesModal] = useState(false);
-    const [renderCategoriesModal, setRenderCategoriesModal] = useState(false);
     const [filterValues, setFilterValues] = useState<IFilterValues>({
         sqlf_10: "",
         cf_id: "",
-        cf_title: "",
+        title: "",
         sqlf_9: "",
         cf_profile_selector: "",
         cf_profile_description: "",
         sqlf_11: "",
         sqlf_12: "",
-        sqlf_4: "",
-        sqlf_6: "",
-        sqlf_8: "",
-        cf_status: "",
+        category: "",
+        user_requesting: "",
+        created_on: "",
+        status: "",
         cf_comments: ""
     });
-    /////////////////////////////////////////////////////////////////////////////
-    //const [returnedValue, setReturnedValue] = useState<string>("");
-
     const [modalStates, setModalStates] = useState({
         categoriesModal: false,
         serviceModal: false,
@@ -104,7 +99,7 @@ const Requests: React.FC = () => {
     };
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFilterValues({ ...filterValues, [e.target.name]: e.target.value });
-        
+
     };
 
     useEffect(() => {
@@ -127,7 +122,7 @@ const Requests: React.FC = () => {
     const generateFilterQuery = () => {
         let query = '';
         let index = 0;
-        const filterKeys: (keyof IFilterValues)[] = ['sqlf_10', 'cf_title', 'sqlf_9', 'cf_profile_selector', 'cf_profile_description', 'sqlf_11', 'sqlf_12', 'cf_id', 'sqlf_4', 'sqlf_6', 'sqlf_8', 'cf_status', 'cf_comments'];
+        const filterKeys: (keyof IFilterValues)[] = ['sqlf_10', 'title', 'sqlf_9', 'cf_profile_selector', 'cf_profile_description', 'sqlf_11', 'sqlf_12', 'cf_id', 'category', 'user_requesting', 'created_on', 'status', 'cf_comments'];
 
         filterKeys.forEach(key => {
             if (filterValues[key]) {
@@ -164,7 +159,7 @@ const Requests: React.FC = () => {
                 filterQuery = `&${encodeURIComponent(activeFilter.parentCode)}=${encodeURIComponent(activeFilter.parentValue)}&${encodeURIComponent(activeFilter.code)}=${encodeURIComponent(activeFilter.value)}`;
             }
 
-            const response = await axios.get< ITableData[] >(`${API_URL_DATA}?${filterQuery}${filter2Query}`);
+            const response = await axios.get<ITableData[]>(`${API_URL_DATA}?${filterQuery}${filter2Query}`);
             setData(response.data);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -247,7 +242,7 @@ const Requests: React.FC = () => {
         <Container fluid>
             <h2> <i className="fas fa-paper-plane nav-icon" style={{ paddingRight: "8px" }}> </i> <b>Requests</b></h2>
             <h5>Navigate to the Requests for your Offered Services</h5>
-            <Row style={{ paddingTop: "30px", flexWrap:"nowrap", display:"flex"}}>
+            <Row style={{ paddingTop: "30px", flexWrap: "nowrap", display: "flex" }}>
                 <Col md={2} style={{ display: 'flex', flexDirection: 'column' }}>
                     <Card>
                         <h5 style={{ paddingLeft: "10px", paddingTop: "10px" }}><b>Categorization</b></h5>
@@ -367,18 +362,18 @@ const Requests: React.FC = () => {
 
                                     <td><Form.Control
                                         type="text"
-                                        name="cf_status"
+                                        name="status"
                                         placeholder="Filter"
-                                        value={filterValues.cf_status}
+                                        value={filterValues.status}
                                         onChange={handleInputChange}
                                     /></td>
 
 
                                     <td><Form.Control
                                         type="text"
-                                        name="sqlf_8"
+                                        name="created_on"
                                         placeholder="Filter"
-                                        value={filterValues.sqlf_8}
+                                        value={filterValues.created_on}
                                         onChange={handleInputChange}
                                     /></td>
                                     <td><Form.Control
@@ -395,16 +390,16 @@ const Requests: React.FC = () => {
                                     <tr key={index}>
                                         <th scope="row">{index + 1}</th>
                                         <td>
-                                            <Button variant="outline-light" className="btn btn-primary" onClick={() => EditRequest(item.cf_id)}>
+                                            <Button variant="outline-light" className="btn btn-primary" onClick={() => EditRequest(item.request_id)} data-bs-toggle="tooltip" data-placement="top" title="Edit a request that you have received">
                                                 <i className="fas fa-pencil-alt"></i>
                                             </Button>
 
                                         </td>
-                                        <td>{Inner(item.sqlf_4)}</td>
-                                        <td>{item.cf_title}</td>
-                                        <td>{Inner(item.sqlf_6)}</td>
-                                        <td>{item.cf_status}</td>
-                                        <td>{item.sqlf_8}</td>
+                                        <td>{Inner(item.category)}</td>
+                                        <td>{item.title}</td>
+                                        <td>{Inner(item.user_requesting)}</td>
+                                        <td>{item.status}</td>
+                                        <td>{item.created_on}</td>
                                         <td>{item.cf_comments}</td>
                                     </tr>
                                 ))}

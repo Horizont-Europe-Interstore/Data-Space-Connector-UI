@@ -18,7 +18,7 @@ interface Company {
 interface User {
     id: string;
     username: string;
-    company: Company;
+    company_obj: Company;
 }
 
 interface Data_catalog_category {
@@ -30,14 +30,14 @@ interface Data_catalog_category {
 interface Data_catalog_service {
     code: string;
     name: string;
-    data_catalog_category: Data_catalog_category;
+    data_catalog_category_obj: Data_catalog_category;
 }
 
 
 interface Data_catalog_business_object {
-    data_catalog_service: Data_catalog_service;
+    data_catalog_service_obj: Data_catalog_service;
     name: string;
-code:string;
+    code: string;
 }
 
 interface User_1_1 {
@@ -48,7 +48,7 @@ interface User_1_1 {
 interface Data_catalog_data_offerings {
     id: string;
     title: string;
-    data_catalog_business_object: Data_catalog_business_object;
+    data_catalog_business_object_obj: Data_catalog_business_object;
     created_on: string;
     active_to: string;
     profile_selector: string;
@@ -61,38 +61,15 @@ interface Data_catalog_data_offerings {
     active_from: string;
     modified_on: string;
     data_catalog_business_object_id: string;
-    user_1_1: User_1_1;
-    user: User;
+    user_1_1_obj: User_1_1;
+    user_obj: User;
     comments: string;
 }
 
-interface Data_catalog_data_offeringsCustom {
-    id: string;
-    title: string;
-    data_catalog_business_object: Data_catalog_business_object;
-    created_on: string;
-    active_to: string;
-    profile_selector: string;
-    file_schema_sample_filename: string;
-    file_schema_filename: string;
-    file_schema_sample: string;
-    file_schema: string;
-    status: string;
-    use_custom_semantics: string | null;
-    active_from: string;
-    modified_on: string;
-    data_catalog_business_object_id: string;
-}
+
 interface ApiReceiving {
-    data_catalog_data_offerings: Data_catalog_data_offerings;
+    data_catalog_data_offerings_obj: Data_catalog_data_offerings;
 }
-
-
-
-
-//// Sending interface
-
-
 
 interface DataCatalogDataRequest {
     comments: string;
@@ -114,27 +91,22 @@ const body: RequestBody = {
 };
 
 const NewSubscription = () => {
-    const location = useLocation();
-    const queryParams = new URLSearchParams(location.search);
-    const id = queryParams.get('id');
     const [data, setData] = useState<Data_catalog_data_offerings | null>(null);
-   
-   
     const handleChange = (name: keyof DataCatalogDataRequest, value: string) => {
         setData(prevData => {
-          if (prevData === null) {
-            return null; 
-          }
-          if (name in prevData) {
-            return {
-              ...prevData,
-              [name]: value
-            };
-          }
-          return prevData;
+            if (prevData === null) {
+                return null;
+            }
+            if (name in prevData) {
+                return {
+                    ...prevData,
+                    [name]: value
+                };
+            }
+            return prevData;
         });
-      };
-   
+    };
+
     const [modalStates, setModalStates] = useState({
         offeringModal: false,
     });
@@ -156,7 +128,7 @@ const NewSubscription = () => {
         setFilterValuesFromModals({ ...ValuesFromModals, [modalName]: value });
         axios.get<ApiReceiving>(`/dataset/my_offered_services/${value}`)
             .then(response => {
-                setData(response.data.data_catalog_data_offerings);
+                setData(response.data.data_catalog_data_offerings_obj);
             })
             .catch(error => {
                 console.error('Error fetching media:', error);
@@ -165,7 +137,7 @@ const NewSubscription = () => {
     };
 
     useEffect(() => {
-       
+
     }, [ValuesFromModals.Modal_id, modalStates.offeringModal]);
 
     async function saveRequest() {
@@ -181,7 +153,6 @@ const NewSubscription = () => {
 
         try {
             const response = await axios.post('/dataset/my_subscriptions', body);
-            console.log('Save response: ', response.data);
             window.location.href = '/mySubscriptions'
         } catch (error) {
             console.error('Error saving data: ', error);
@@ -210,7 +181,7 @@ const NewSubscription = () => {
             <Card >
                 <ListGroup variant="flush">
                     <ListGroup.Item>
-                        <h3 style={{  paddingTop: "10px" }}><b> <i className="fas fa-external-link-alt nav-icon" style={{ paddingRight: "8px" }}> </i> Offered Services </b></h3>
+                        <h3 style={{ paddingTop: "10px" }}><b> <i className="fas fa-external-link-alt nav-icon" style={{ paddingRight: "8px" }}> </i> Offered Services </b></h3>
                         <h6>Select Offered Service For This Subscription Request </h6>
                         <Row form>
                             <Col md={6}>
@@ -229,13 +200,13 @@ const NewSubscription = () => {
                                 <FormGroup>
 
                                     <Label for="serviceName">Created on</Label>
-                                   {data?.created_on && <Form.Control
+                                    {data?.created_on && <Form.Control
                                         type="text"
                                         value={format(new Date(data?.created_on), 'dd/MM/yyyy HH:mm')}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />}
-                                     {!data?.created_on && <Form.Control
+                                    {!data?.created_on && <Form.Control
                                         type="text"
                                         value=""
                                         aria-label="Disabled input example"
@@ -251,7 +222,7 @@ const NewSubscription = () => {
                                     <Label for="serviceCode">Businnes object code</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_business_object.code}
+                                        value={data?.data_catalog_business_object_obj.code}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -263,7 +234,7 @@ const NewSubscription = () => {
                                     <Label for="serviceName">Business Object Name</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_business_object.name}
+                                        value={data?.data_catalog_business_object_obj.name}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -277,7 +248,7 @@ const NewSubscription = () => {
                                     <Label for="serviceCode">Service Code</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_business_object.data_catalog_service.code}
+                                        value={data?.data_catalog_business_object_obj.data_catalog_service_obj.code}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -289,7 +260,7 @@ const NewSubscription = () => {
                                     <Label for="serviceName">Service Name</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_business_object.data_catalog_service.name}
+                                        value={data?.data_catalog_business_object_obj.data_catalog_service_obj.name}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -303,7 +274,7 @@ const NewSubscription = () => {
                                     <Label for="serviceCode">Category Code</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_business_object.data_catalog_service.data_catalog_category.code}
+                                        value={data?.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.code}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -315,7 +286,7 @@ const NewSubscription = () => {
                                     <Label for="serviceName">Category Name</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_business_object.data_catalog_service.data_catalog_category.name}
+                                        value={data?.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.name}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -328,7 +299,7 @@ const NewSubscription = () => {
                                     <Label for="serviceCode">Offering User Id</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.user_1_1.id}
+                                        value={data?.user_1_1_obj.id}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -340,7 +311,7 @@ const NewSubscription = () => {
                                     <Label for="serviceName">Offering Username</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.user_1_1.username}
+                                        value={data?.user_1_1_obj.username}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -354,7 +325,7 @@ const NewSubscription = () => {
                                     <Label for="serviceCode">Offering Company Id</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.user.company.id}
+                                        value={data?.user_obj.company_obj.id}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -366,7 +337,7 @@ const NewSubscription = () => {
                                     <Label for="serviceName">Offering Company Name</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.user.company.name}
+                                        value={data?.user_obj.company_obj.name}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -378,7 +349,7 @@ const NewSubscription = () => {
             </Card>
 
 
-          
+
 
             <Card >
                 <h3 className="list-group-item-heading" style={{ paddingLeft: "20px", paddingTop: "20px" }}><b>Comments</b></h3>

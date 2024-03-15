@@ -36,12 +36,9 @@ import DetailDataEntity from './pages/profile/profileData/DetailDataEntity';
 import NewSubscription from './pages/profile/NewSubscription';
 import TimelineTab from './pages/profile/TimelineTab';
 import {
-  GoogleProvider,
   getAuthStatus,
-  getFacebookLoginStatus,
 } from './utils/oidc-providers';
 import axios from 'axios';
-declare const FB: any;
 
 const App = () => {
   const windowSize = useWindowSize();
@@ -53,8 +50,7 @@ const App = () => {
   const checkSession = async () => {
     try {
       let responses: any = await Promise.all([
-        getFacebookLoginStatus(),
-        GoogleProvider.getUser(),
+        
         getAuthStatus(),
       ]);
 

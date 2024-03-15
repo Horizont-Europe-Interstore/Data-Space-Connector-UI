@@ -117,10 +117,6 @@ const CreateDataEntity = () => {
   }, []);
 
 
-
-
-
-
   async function saveRequest() {
     const apiRetrived= await RetrieveLocalApi()
    
@@ -197,15 +193,15 @@ const CreateDataEntity = () => {
       .then(response => {
         setCardElements(prevState => ({
           ...prevState,
-          title: response.data.data_catalog_data_offerings.title,
-          profileFormat: response.data.data_catalog_data_offerings.profile_selector,
-          profileDescription: response.data.data_catalog_data_offerings.profile_description,
-          businnesObjectCode: response.data.data_catalog_data_offerings.data_catalog_business_object.code,
-          businnesObjectName: response.data.data_catalog_data_offerings.data_catalog_business_object.name,
-          serviceCode: response.data.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.code,
-          serviceName: response.data.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.name,
-          categoryCode: response.data.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.data_catalog_category.code,
-          categoryName: response.data.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.data_catalog_category.name
+          title: response.data.data_catalog_data_offerings_obj.title,
+          profileFormat: response.data.data_catalog_data_offerings_obj.profile_selector,
+          profileDescription: response.data.data_catalog_data_offerings_obj.profile_description,
+          businnesObjectCode: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.code,
+          businnesObjectName: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.name,
+          serviceCode: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.code,
+          serviceName: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.name,
+          categoryCode: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.code,
+          categoryName: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.name
         }));
 
       })

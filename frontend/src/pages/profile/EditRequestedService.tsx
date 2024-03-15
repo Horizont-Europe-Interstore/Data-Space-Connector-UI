@@ -7,6 +7,7 @@ import Form from 'react-bootstrap/Form';
 import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
+import { removeObj } from '@app/components/helpers/RemoveOBJ';
 interface DataCatalogCategory {
     code: string;
     name: string;
@@ -28,12 +29,12 @@ interface DataCatalogService {
     name: string;
     id: string;
     short_order: string;
-    data_catalog_category: DataCatalogCategory;
+    data_catalog_category_obj: DataCatalogCategory;
 }
-interface Data_catalog_business_object{
-    code:string;
-    name:string; 
-    data_catalog_service: DataCatalogService;
+interface Data_catalog_business_object {
+    code: string;
+    name: string;
+    data_catalog_service_obj: DataCatalogService;
 }
 
 interface Data_catalog_data_offerings {
@@ -48,35 +49,26 @@ interface Data_catalog_data_offerings {
     profile_selector: string;
     name: string;
     id: string;
-title:string;
-   
-    data_catalog_business_object: Data_catalog_business_object;
+    title: string;
+
+    data_catalog_business_object_obj: Data_catalog_business_object;
 }
 
 interface DataCatalogDataRequests {
     title: string;
-    modified_on: string;
     comments: string;
-    input_data_source: string;
-    input_profile: string;
-    owner_id: string;
-    user_requesting: {
+    user_requesting_obj: {
         id: string;
         username: string;
-        company_requesting: {
+        company_requesting_obj: {
             name: string;
 
         }
     };
-    created_by: string;
-    viewed_by_offering_owner: string;
-    data_catalog_business_object_id: string;
     created_on: string;
-    data_catalog_data_offerings: Data_catalog_data_offerings;
-    modified_by: string;
+    data_catalog_data_offerings_obj: Data_catalog_data_offerings;
     id: string;
-    data_catalog_data_offering_id: string;
-    user: {
+    user_obj: {
         id: string;
         email: string;
         username: string;
@@ -88,7 +80,7 @@ interface DataCatalogDataRequests {
 }
 
 interface ApiResponse {
-    data_catalog_data_requests: DataCatalogDataRequests;
+    data_catalog_data_requests_obj: DataCatalogDataRequests;
 }
 
 interface DataCatalogDataRequest {
@@ -96,11 +88,11 @@ interface DataCatalogDataRequest {
     status: string;
 }
 interface RequestBody {
-    data_catalog_data_requests: DataCatalogDataRequest;
+    data_catalog_data_requests_obj: DataCatalogDataRequest;
 }
 
 const body: RequestBody = {
-    data_catalog_data_requests: {
+    data_catalog_data_requests_obj: {
 
         id: "",
 
@@ -118,7 +110,7 @@ const DetailService = () => {
         const fetchData = async () => {
             try {
                 const response = await axios.get<ApiResponse>(`/dataset/requests_on_offered_services/${id}`);
-                setData(response.data.data_catalog_data_requests);
+                setData(response.data.data_catalog_data_requests_obj);
             } catch (error) {
                 console.error('Error fetching data: ', error);
             }
@@ -149,17 +141,17 @@ const DetailService = () => {
 
     async function saveRequest() {
         if (data?.id) {
-            body.data_catalog_data_requests.id = data.id;
+            body.data_catalog_data_requests_obj.id = data.id;
         }
 
         if (data?.status) {
-            body.data_catalog_data_requests.status = data.status;
+            body.data_catalog_data_requests_obj.status = data.status;
         }
 
 
 
         try {
-            const response = await axios.post('/dataset/requests_on_offered_services', body);
+            const response = await axios.post('/dataset/requests_on_offered_services', removeObj(body));
             window.location.href = '/requests'
         } catch (error) {
             console.error('Error saving data: ', error);
@@ -222,7 +214,7 @@ const DetailService = () => {
                             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Requesting User Id</Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder={data.user_requesting.id}
+                                    placeholder={data.user_requesting_obj.id}
                                     aria-label="Disabled input example"
                                     readOnly
                                 /></ListGroup.Item>
@@ -231,7 +223,7 @@ const DetailService = () => {
                             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Requesting User</Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder={data.user_requesting.username}
+                                    placeholder={data.user_requesting_obj.username}
                                     aria-label="Disabled input example"
                                     readOnly
                                 /></ListGroup.Item>
@@ -240,7 +232,7 @@ const DetailService = () => {
                             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Requesting Company</Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder={data.user_requesting.company_requesting.name}
+                                    placeholder={data.user_requesting_obj.company_requesting_obj.name}
                                     aria-label="Disabled input example"
                                     readOnly
                                 /></ListGroup.Item>
@@ -254,7 +246,7 @@ const DetailService = () => {
                             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Your offering Id</Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder={data.data_catalog_data_offerings.id}
+                                    placeholder={data.id}
                                     aria-label="Disabled input example"
                                     readOnly
                                 /></ListGroup.Item>
@@ -272,7 +264,7 @@ const DetailService = () => {
                     <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Title</Label>
                         <Form.Control
                             type="text"
-                            placeholder={data.data_catalog_data_offerings.title}
+                            placeholder={data.data_catalog_data_offerings_obj.title}
                             aria-label="Disabled input example"
                             readOnly
                         /></ListGroup.Item>
@@ -282,7 +274,7 @@ const DetailService = () => {
                             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Business Object Code</Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder={data.data_catalog_data_offerings.data_catalog_business_object.code}
+                                    placeholder={data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.code}
                                     aria-label="Disabled input example"
                                     readOnly
                                 /></ListGroup.Item>
@@ -291,7 +283,7 @@ const DetailService = () => {
                             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Business Object Name</Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder={data.data_catalog_data_offerings.data_catalog_business_object.name}
+                                    placeholder={data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.name}
                                     aria-label="Disabled input example"
                                     readOnly
                                 /></ListGroup.Item>
@@ -302,7 +294,7 @@ const DetailService = () => {
                             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Service Code</Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder={data.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.code}
+                                    placeholder={data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.code}
                                     aria-label="Disabled input example"
                                     readOnly
                                 /></ListGroup.Item>
@@ -311,7 +303,7 @@ const DetailService = () => {
                             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Service Name</Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder={data.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.name}
+                                    placeholder={data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.name}
                                     aria-label="Disabled input example"
                                     readOnly
                                 /></ListGroup.Item>
@@ -322,7 +314,7 @@ const DetailService = () => {
                             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Category Code</Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder={data.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.data_catalog_category.code}
+                                    placeholder={data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.code}
                                     aria-label="Disabled input example"
                                     readOnly
                                 /></ListGroup.Item>
@@ -331,7 +323,7 @@ const DetailService = () => {
                             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Category Name</Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder={data.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.data_catalog_category.name}
+                                    placeholder={data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.name}
                                     aria-label="Disabled input example"
                                     readOnly
                                 /></ListGroup.Item>

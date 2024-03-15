@@ -2,7 +2,6 @@ import { Container, Row, Col, Button, FormGroup, Label, Input } from 'reactstrap
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Form from 'react-bootstrap/Form';
-import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -17,13 +16,13 @@ interface Data_catalog_category {
 interface Data_catalog_service {
     code: string;
     name: string;
-    data_catalog_category: Data_catalog_category;
+    data_catalog_category_obj: Data_catalog_category;
     short_description: string;
 }
 
 
 interface Data_catalog_business_object {
-    data_catalog_service: Data_catalog_service;
+    data_catalog_service_obj: Data_catalog_service;
     name: string;
     code: string;
 
@@ -41,16 +40,16 @@ interface Onenet_consumer {
 
 }
 interface Data_catalog_data_requests {
-    onenet_consumer: Onenet_consumer;
+    onenet_consumer_obj: Onenet_consumer;
 }
 interface Data_catalog_data_offerings {
     file_schema_filename: string;
-    data_catalog_business_object: Data_catalog_business_object;
+    data_catalog_business_object_obj: Data_catalog_business_object;
     title: string;
     profile_description: string;
     profile_selector: string;
     user_offering: User_offering;
-    data_catalog_data_requests: Data_catalog_data_requests;
+    data_catalog_data_requests_obj: Data_catalog_data_requests;
     file_schema: string;
 }
 
@@ -62,18 +61,15 @@ interface Data_send {
     created_on: string;
     active_to: string;
     profile_selector: string;
-    file_schema_sample_filename: string;
-    file_schema_filename: string;
-    file_schema_sample: string;
     filedata: string;
-    data_catalog_data_offerings: Data_catalog_data_offerings;
+    data_catalog_data_offerings_obj: Data_catalog_data_offerings;
     data_catalog_data_offerings_id: string;
     description: string;
 
 }
 
 interface ApiResponse {
-    data_send: Data_send;
+    data_send_obj: Data_send;
 }
 const EditDataEntity = () => {
     const location = useLocation();
@@ -87,7 +83,7 @@ const EditDataEntity = () => {
             try {
                 const response = await axios.get<ApiResponse>(`/dataset/data_consumed/${id}`);
 
-                setData(response.data.data_send);
+                setData(response.data.data_send_obj);
             } catch (error) {
                 console.error('Error fetching data: ', error);
             }
@@ -106,12 +102,15 @@ const EditDataEntity = () => {
             let apiAdd: string = "";
             let apiAdd2: string = "";
             let apiAdd3: string = "";
-            if (data?.data_catalog_data_offerings.data_catalog_data_requests.onenet_consumer.ecc_url && data?.data_catalog_data_offerings.data_catalog_data_requests.onenet_consumer.broker_url && data?.data_catalog_data_offerings.data_catalog_data_requests.onenet_consumer.data_app_url) {
-                apiAdd = data?.data_catalog_data_offerings.data_catalog_data_requests.onenet_consumer.ecc_url
-                apiAdd2 = data?.data_catalog_data_offerings.data_catalog_data_requests.onenet_consumer.broker_url
-                apiAdd3 = data?.data_catalog_data_offerings.data_catalog_data_requests.onenet_consumer.data_app_url
+            if (data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.ecc_url && data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.broker_url && data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.data_app_url) {
+                
+                apiAdd = data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.ecc_url
+                apiAdd2 = data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.broker_url
+                apiAdd3 = data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.data_app_url
+                
             }
             const apiRetrived = await RetrieveLocalApi()
+            
             const response = await axios.get<ApiResponse2>(`${apiRetrived}/entity?id=${data?.id}&provider_ecc=${btoa(apiAdd)}&consumer_fiware=${btoa(apiAdd2)}&consumer_data_app=${btoa(apiAdd3)}`,
                 {
                     data: {},
@@ -121,6 +120,7 @@ const EditDataEntity = () => {
                     }
                 });
             if (data) {
+                
                 const fileData: string = response.data.filedata;
                 const base64Response: string = fileData.split(';base64,').pop()!;
                 const blob: Blob = base64ToBlob(base64Response, 'text/plain');
@@ -214,10 +214,10 @@ const EditDataEntity = () => {
                         <Input type="text" name="id" id="id" value={data?.data_catalog_data_offerings_id} /></ListGroup.Item>
 
                     <ListGroup.Item><Label for="id">Profile Format</Label>
-                        <Input type="text" name="id" id="id" value={data?.data_catalog_data_offerings.profile_selector} /></ListGroup.Item>
+                        <Input type="text" name="id" id="id" value={data?.data_catalog_data_offerings_obj.profile_selector} /></ListGroup.Item>
 
                     <ListGroup.Item><Label for="title">Profile Description</Label>
-                        <Input type="text" name="title" id="title" value={data?.data_catalog_data_offerings.profile_description} />
+                        <Input type="text" name="title" id="title" value={data?.data_catalog_data_offerings_obj.profile_description} />
                     </ListGroup.Item>
                 </ListGroup>
 
@@ -226,7 +226,7 @@ const EditDataEntity = () => {
                         <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Business Object Code</Label>
                             <Form.Control
                                 type="text"
-                                value={data?.data_catalog_data_offerings.data_catalog_business_object.code}
+                                value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.code}
 
                             /></ListGroup.Item>
                     </div>
@@ -234,7 +234,7 @@ const EditDataEntity = () => {
                         <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Business Object Name</Label>
                             <Form.Control
                                 type="text"
-                                value={data?.data_catalog_data_offerings.data_catalog_business_object.name}
+                                value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.name}
 
                             /></ListGroup.Item>
                     </div>
@@ -244,7 +244,7 @@ const EditDataEntity = () => {
                         <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Service Code</Label>
                             <Form.Control
                                 type="text"
-                                value={data?.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.code}
+                                value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.code}
 
                             /></ListGroup.Item>
                     </div>
@@ -252,7 +252,7 @@ const EditDataEntity = () => {
                         <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Service Name</Label>
                             <Form.Control
                                 type="text"
-                                value={data?.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.name}
+                                value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.name}
 
                             /></ListGroup.Item>
                     </div>
@@ -262,7 +262,7 @@ const EditDataEntity = () => {
                         <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Category Code</Label>
                             <Form.Control
                                 type="text"
-                                value={data?.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.data_catalog_category.code}
+                                value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.code}
 
                             /></ListGroup.Item>
                     </div>
@@ -270,7 +270,7 @@ const EditDataEntity = () => {
                         <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Category Name</Label>
                             <Form.Control
                                 type="text"
-                                value={data?.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.data_catalog_category.name}
+                                value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.name}
 
                             /></ListGroup.Item>
                     </div>

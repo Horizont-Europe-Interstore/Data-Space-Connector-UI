@@ -25,7 +25,6 @@ const Login = () => {
     try {
       setAuthLoading(true);
       const response = await authLogin(email, password);
-      console.log(response.accessToken)
       localStorage.setItem('token', response.accessToken);
       localStorage.setItem("email", email)
       dispatch(setAuthentication(response as any));

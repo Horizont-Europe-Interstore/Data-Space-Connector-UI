@@ -10,6 +10,7 @@ const Pagination: React.FC<PaginationProps> = ({ totalPages, paginate, currentPa
       pageNumbers.push(i);
     }
 
+    
     return (
       <nav>
         <ul className='pagination'>

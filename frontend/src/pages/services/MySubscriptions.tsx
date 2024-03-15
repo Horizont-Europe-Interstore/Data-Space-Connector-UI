@@ -12,16 +12,13 @@ import Offering from '../modals/Offering';
 import Inner from '@app/components/helpers/InnerHtml';
 import Pagination from '@app/components/helpers/Pagination';
 import { NewSubscription } from '@app/components/helpers/Buttons';
+import { format } from 'date-fns';
 if (localStorage.getItem("token")) {
     axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
 }
 const API_URL_FILTERS = "/list/left-grouping/results?id=607fe472-e51d-44c5-a9c3-ba8ec09208d0&ft_id_offering=0db22a09-e67e-4e3d-8190-5e6c68793116&language-id=2";
 const API_URL_DATA = "/datalist/my_subscriptions/page/";
-interface PaginationProps {
-    totalPages: number;
-    paginate: (pageNumber: number) => void;
-    currentPage: number;
-}
+
 interface IFilterValues {
     sqlf_10: string;
     cf_id: string;
@@ -62,15 +59,13 @@ interface ITableData {
     comments: string;
     user_offering: string;
     totalPages: string;
+    my_subscription_id: string;
 }
 const MySubscriptions: React.FC = () => {
     const [data, setData] = useState<ITableData[]>([]);
     const [filters, setFilters] = useState<IFilter[]>([]);
     const [activeFilter, setActiveFilter] = useState<{ parentCode: string, parentValue: string, code: string, value: string } | null>(null);
     const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
-    const [PartialApi, setPartialApi] = useState<string | null>(null);
-    const [showCategoriesModal, setShowCategoriesModal] = useState(false);
-    const [renderCategoriesModal, setRenderCategoriesModal] = useState(false);
     const [filterValues, setFilterValues] = useState<IFilterValues>({
         sqlf_10: "",
         cf_id: "",
@@ -107,7 +102,6 @@ const MySubscriptions: React.FC = () => {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
-    const itemsPerPage = 10;
 
     useEffect(() => {
         fetchData();
@@ -382,9 +376,9 @@ const MySubscriptions: React.FC = () => {
                                 <tr>
                                     <th>#</th>
                                     <th></th>
-                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category</th>
+                                    {/* <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category</th> */}
                                     <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title </th>
-                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>User Offering</th>
+                                    {/* <th style={{ textAlign: "center", verticalAlign: "middle" }}>User Offering</th> */}
                                     <th style={{ textAlign: "center", verticalAlign: "middle" }}>Status</th>
                                     <th style={{ textAlign: "center", verticalAlign: "middle" }}>Created on</th>
                                     <th style={{ textAlign: "center", verticalAlign: "middle" }}>Comments</th>
@@ -397,11 +391,6 @@ const MySubscriptions: React.FC = () => {
                                     <td></td>
                                     <td></td>
                                     <td></td>
-
-                                    <td></td>
-
-                                    <td></td>
-
                                     <td><Form.Control
                                         type="text"
                                         name="status"
@@ -409,8 +398,6 @@ const MySubscriptions: React.FC = () => {
                                         value={filterValues.status}
                                         onChange={handleInputChange}
                                     /></td>
-
-
                                     <td><Form.Control
                                         type="text"
                                         name="created_on"
@@ -446,15 +433,15 @@ const MySubscriptions: React.FC = () => {
                                     <tr key={index}>
                                         <th scope="row">{(((currentPage - 1)) * 10) + index + 1}</th>
                                         <td>
-                                            <Button variant="outline-light" className="btn btn-primary" onClick={() => EditSubscription(item.cf_id)}>
+                                            <Button variant="outline-light" className="btn btn-primary" onClick={() => EditSubscription(item.my_subscription_id)}>
                                                 <i className="fas fa-pencil-alt"></i>
                                             </Button>
                                         </td>
-                                        <td>{Inner(item.category)}</td>
+                                        {/* <td>{Inner(item.category)}</td> */}
                                         <td>{item.title}</td>
-                                        <td>{Inner(item.user_offering)}</td>
+                                        {/* <td>{Inner(item.user_offering)}</td> */}
                                         <td>{item.status}</td>
-                                        <td>{item.created_on}</td>
+                                        <td>{format(new Date(item.created_on), 'dd/MM/yyyy HH:mm')}</td>
                                         <td>{item.comments}</td>
                                         <td>{item.profile_selector}</td>
                                         <td style={{

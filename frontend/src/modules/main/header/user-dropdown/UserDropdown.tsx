@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { PfDropdown, PfImage } from '@profabric/react-components';
 import { setAuthentication } from '@app/store/reducers/auth';
-import { GoogleProvider } from '@app/utils/oidc-providers';
 import axios from 'axios';
 const StyledSmallUserImage = styled(PfImage)`
   margin-top: 3px;

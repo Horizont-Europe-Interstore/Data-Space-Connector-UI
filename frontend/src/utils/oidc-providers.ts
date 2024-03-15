@@ -14,9 +14,9 @@ const GOOGLE_CONFIG: UserManagerSettings = {
   loadUserInfo: true,
 };
 
-export const GoogleProvider = new UserManager(GOOGLE_CONFIG);
+//export const GoogleProvider = new UserManager(GOOGLE_CONFIG);
 
-export const facebookLogin = () => {
+ /* const facebookLogin = () => {
   return new Promise((res, rej) => {
     let authResponse: any;
     FB.login(
@@ -39,9 +39,9 @@ export const facebookLogin = () => {
       { scope: 'public_profile,email' }
     );
   });
-};
+}; */
 
-export const getFacebookLoginStatus = () => {
+ /* const getFacebookLoginStatus = () => {
   return new Promise((res, rej) => {
     let authResponse: any = {};
     FB.getLoginStatus((r: any) => {
@@ -60,7 +60,7 @@ export const getFacebookLoginStatus = () => {
       }
     });
   });
-};
+}; */
 
 export const authLogin = async (email: string, password: string) => {
 

@@ -6,7 +6,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import { Await, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import axios from 'axios';
-
+import { removeObj } from '@app/components/helpers/RemoveOBJ';
 
 
 interface Data_catalog_category {
@@ -18,12 +18,12 @@ interface Data_catalog_category {
 interface Data_catalog_service {
   code: string;
   name: string;
-  data_catalog_category: Data_catalog_category;
+  data_catalog_category_obj: Data_catalog_category;
 }
 
 
 interface Data_catalog_business_object {
-  data_catalog_service: Data_catalog_service;
+  data_catalog_service_obj: Data_catalog_service;
   name: string;
 
 }
@@ -31,7 +31,7 @@ interface Data_catalog_business_object {
 interface Data_catalog_data_offerings {
   id: string;
   title: string;
-  data_catalog_business_object: Data_catalog_business_object;
+  data_catalog_business_object_obj: Data_catalog_business_object;
   created_on: string;
   active_to: string;
   profile_selector: string;
@@ -47,25 +47,9 @@ interface Data_catalog_data_offerings {
   profile_description: string;
 }
 
-interface Data_catalog_data_offeringsCustom {
-  id: string;
-  title: string;
-  data_catalog_business_object: Data_catalog_business_object;
-  created_on: string;
-  active_to: string;
-  profile_selector: string;
-  file_schema_sample_filename: string;
-  file_schema_filename: string;
-  file_schema_sample: string;
-  file_schema: string;
-  status: string;
-  use_custom_semantics: string | null;
-  active_from: string;
-  modified_on: string;
-  data_catalog_business_object_id: string;
-}
+
 interface ApiResponse {
-  data_catalog_data_offerings: Data_catalog_data_offerings;
+  data_catalog_data_offerings_obj: Data_catalog_data_offerings;
 }
 const EditService = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -73,12 +57,8 @@ const EditService = () => {
   const queryParams = new URLSearchParams(location.search);
   const id = queryParams.get('id');
   const [data, setData] = useState<Data_catalog_data_offerings | null>(null);
-  const [dataCustom, setDataCustom] = useState<Data_catalog_data_offeringsCustom | null>(null);
   const [isLoading1, setIsLoading1] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
-  const [fileName, setFileName] = useState<string>('');
-  const [fileBase64, setFileBase64] = useState<string>('');
-  const [dateNotFormatted, setDateNotFormatted] = useState<string>("");
   const formatDateFromData = (dateString: string): string => {
     let formattedDate = dateString.replace(' ', 'T').slice(0, 16);
     return formattedDate;
@@ -88,7 +68,7 @@ const EditService = () => {
       try {
         const response = await axios.get<ApiResponse>(`/dataset/my_offered_services/${id}`);
 
-        setData(response.data.data_catalog_data_offerings);
+        setData(response.data.data_catalog_data_offerings_obj);
 
 
       } catch (error) {
@@ -126,12 +106,15 @@ const EditService = () => {
 
   }
 
+
+
+
   async function saveRequest(isStatusChanged: boolean) {
     setIsLoading(true);
     let state = data?.status
     if (isStatusChanged) {
       state = "disabled"
-    }else{
+    } else {
       state = "active"
     }
     if (data) {
@@ -146,11 +129,13 @@ const EditService = () => {
 
       };
       const requestBody = {
-        data_catalog_data_offerings: updatedData,
+        data_catalog_data_offerings_obj: updatedData,
+
       };
 
       try {
-        const response = await axios.post('/dataset/my_offered_services', requestBody);
+
+        const response = await axios.post('/dataset/my_offered_services', removeObj(requestBody));
         window.location.href = '/myOfferedServices'
       } catch (error) {
         console.error('Error saving data: ', error);
@@ -258,54 +243,54 @@ const EditService = () => {
   function downloadFile(type: string, filename: string): void {
     if (data) {
 
-        let fileData: string = ""
-        let fileName: string = ""
-        if (type === "file_schema") {
-            setIsLoading1(true)
-            fileData = data.file_schema
-            fileName = data.file_schema_filename
-        } else {
-            setIsLoading2(true)
-            fileData = data.file_schema_sample
-            fileName = data.file_schema_sample_filename
-        }
-        const base64Response: string = fileData.split(';base64,').pop()!;
-        const blob: Blob = base64ToBlob(base64Response, 'text/plain');
+      let fileData: string = ""
+      let fileName: string = ""
+      if (type === "file_schema") {
+        setIsLoading1(true)
+        fileData = data.file_schema
+        fileName = data.file_schema_filename
+      } else {
+        setIsLoading2(true)
+        fileData = data.file_schema_sample
+        fileName = data.file_schema_sample_filename
+      }
+      const base64Response: string = fileData.split(';base64,').pop()!;
+      const blob: Blob = base64ToBlob(base64Response, 'text/plain');
 
-        const url: string = URL.createObjectURL(blob);
+      const url: string = URL.createObjectURL(blob);
 
-        const link: HTMLAnchorElement = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', fileName);
+      const link: HTMLAnchorElement = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
 
-        document.body.appendChild(link);
-        link.click();
+      document.body.appendChild(link);
+      link.click();
 
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
     if (type === "file_schema") {
-        setIsLoading1(false)
+      setIsLoading1(false)
     } else if (type == "file_schema_sample") {
-        setIsLoading2(false)
+      setIsLoading2(false)
     }
 
-}
-function base64ToBlob(base64: string, mimeType: string): Blob {
+  }
+  function base64ToBlob(base64: string, mimeType: string): Blob {
     const byteCharacters: string = atob(base64);
     const byteArrays: Uint8Array[] = [];
 
     for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-        const slice: string = byteCharacters.slice(offset, offset + 512);
-        const byteNumbers: number[] = new Array(slice.length);
-        for (let i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i);
-        }
-        const byteArray: Uint8Array = new Uint8Array(byteNumbers);
-        byteArrays.push(byteArray);
+      const slice: string = byteCharacters.slice(offset, offset + 512);
+      const byteNumbers: number[] = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      const byteArray: Uint8Array = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
     }
     return new Blob(byteArrays, { type: mimeType });
-}
+  }
   return (
     <Container fluid>
       <div className='row' style={{ paddingBottom: "15px" }}>
@@ -337,7 +322,7 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
                 Saving...
               </button>}
 
-              
+
             </div>
           </div>
         </div>
@@ -361,7 +346,7 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
         <h6 style={{ paddingLeft: " 20px" }}>Select Offered Service For This Subscription Request</h6>
         <ListGroup variant="flush">
           <ListGroup.Item><Label for="id">Businnes object</Label>
-            <Input type="text" name="id" id="id" placeholder={data?.data_catalog_business_object.name} disabled />
+            <Input type="text" name="id" id="id" placeholder={data?.data_catalog_business_object_obj.name} disabled />
 
 
           </ListGroup.Item>
@@ -370,13 +355,13 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
               <Col md={6}>
                 <FormGroup>
                   <Label for="serviceCode">Service Code</Label>
-                  <Input type="text" name="serviceCode" id="serviceCode" placeholder={data?.data_catalog_business_object.data_catalog_service.code} disabled />
+                  <Input type="text" name="serviceCode" id="serviceCode" placeholder={data?.data_catalog_business_object_obj.data_catalog_service_obj.code} disabled />
                 </FormGroup>
               </Col>
               <Col md={6}>
                 <FormGroup>
                   <Label for="serviceName">Service Name</Label>
-                  <Input type="text" name="serviceName" id="serviceName" placeholder={data?.data_catalog_business_object.data_catalog_service.name} disabled />
+                  <Input type="text" name="serviceName" id="serviceName" placeholder={data?.data_catalog_business_object_obj.data_catalog_service_obj.name} disabled />
                 </FormGroup>
               </Col>
             </Row>
@@ -386,13 +371,13 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
               <Col md={6}>
                 <FormGroup>
                   <Label for="serviceCode">Category code</Label>
-                  <Input type="text" name="categoryCode" id="categoryCode" placeholder={data?.data_catalog_business_object.data_catalog_service.data_catalog_category.code} disabled />
+                  <Input type="text" name="categoryCode" id="categoryCode" placeholder={data?.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.code} disabled />
                 </FormGroup>
               </Col>
               <Col md={6}>
                 <FormGroup>
                   <Label for="serviceName">Category Name</Label>
-                  <Input type="text" name="categoryName" id="categoryName" placeholder={data?.data_catalog_business_object.data_catalog_service.data_catalog_category.name} disabled />
+                  <Input type="text" name="categoryName" id="categoryName" placeholder={data?.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.name} disabled />
                 </FormGroup>
               </Col>
             </Row>
@@ -441,28 +426,28 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
                 />
               </div>
               {data?.file_schema && <div className='col-2'>
-                                {!isLoading1 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema", "file_schema_filename")}>
-                                    Download
-                                </button>}
+                {!isLoading1 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema", "file_schema_filename")}>
+                  Download
+                </button>}
 
-                                {isLoading1 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema", "file_schema_filename")}>
-                                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                    Downloading...
-                                </button>}
-                                
-                            </div>}
+                {isLoading1 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema", "file_schema_filename")}>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  Downloading...
+                </button>}
 
-                            {!data?.file_schema && <div className='col-2'>
-                                {!isLoading1 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema", "file_schema_filename")} disabled>
-                                    Download
-                                </button>}
+              </div>}
 
-                                {isLoading1 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema", "file_schema_filename")} disabled>
-                                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                    Downloading...
-                                </button>}
-                                
-                            </div>}
+              {!data?.file_schema && <div className='col-2'>
+                {!isLoading1 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema", "file_schema_filename")} disabled>
+                  Download
+                </button>}
+
+                {isLoading1 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema", "file_schema_filename")} disabled>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  Downloading...
+                </button>}
+
+              </div>}
             </div>
           </ListGroup.Item>
 
@@ -483,30 +468,30 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
               {data?.file_schema_sample && <div className='col-2'>
 
 
-{!isLoading2 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema_sample", "file_schema_sample_filename")}>
-    Download
-</button>}
+                {!isLoading2 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema_sample", "file_schema_sample_filename")}>
+                  Download
+                </button>}
 
-{isLoading2 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema_sample", "file_schema_sample_filename")}>
-    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-    Downloading...
-</button>}
+                {isLoading2 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema_sample", "file_schema_sample_filename")}>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  Downloading...
+                </button>}
 
-</div>}
+              </div>}
 
-{!data?.file_schema_sample && <div className='col-2'>
+              {!data?.file_schema_sample && <div className='col-2'>
 
 
-{!isLoading2 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema_sample", "file_schema_sample_filename")} disabled>
-    Download
-</button>}
+                {!isLoading2 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema_sample", "file_schema_sample_filename")} disabled>
+                  Download
+                </button>}
 
-{isLoading2 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema_sample", "file_schema_sample_filename")} disabled>
-    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-    Downloading...
-</button>}
+                {isLoading2 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema_sample", "file_schema_sample_filename")} disabled>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  Downloading...
+                </button>}
 
-</div>}
+              </div>}
             </div>
 
           </ListGroup.Item>

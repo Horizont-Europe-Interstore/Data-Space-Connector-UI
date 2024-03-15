@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -30,6 +29,7 @@
     ]
   },
   "dependencies": {
+    "@cypress/webpack-preprocessor": "^6.0.1",
     "@fortawesome/fontawesome-svg-core": "6.4.0",
     "@fortawesome/free-brands-svg-icons": "6.4.0",
     "@fortawesome/free-regular-svg-icons": "6.4.0",
@@ -44,6 +44,7 @@
     "@vitejs/plugin-react": "4.2.1",
     "axios": "^1.6.7",
     "bootstrap": "^4.6.0",
+    "cypress": "^13.6.6",
     "date-fns": "^3.3.1",
     "formik": "2.2.9",
     "i18next": "22.4.15",

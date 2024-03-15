@@ -12,7 +12,7 @@ interface Company {
     id: string;
 }
 interface User_offering {
-    company: Company;
+    company_obj: Company;
 }
 interface User {
     id: string;
@@ -26,35 +26,35 @@ interface Data_catalog_category {
 }
 
 interface Data_catalog_service {
-    data_catalog_category: Data_catalog_category;
+    data_catalog_category_obj: Data_catalog_category;
 }
 
 interface Data_catalog_service {
     code: string;
     name: string;
-    data_catalog_service: Data_catalog_service;
+    data_catalog_service_obj: Data_catalog_service;
 }
 interface Data_catalog_business_object {
-    data_catalog_service: Data_catalog_service;
+    data_catalog_service_obj: Data_catalog_service;
     code: string;
     name: string;
 }
 
 interface Data_catalog_data_offerings {
-    data_catalog_business_object: Data_catalog_business_object;
-    user_offering: User_offering;
+    data_catalog_business_object_obj: Data_catalog_business_object;
+    user_offering_obj: User_offering;
 }
 
 interface Data_catalog_data_requests {
     data_catalog_data_offering_id: string;
     created_on: string;
-    data_catalog_data_offerings: Data_catalog_data_offerings;
+    data_catalog_data_offerings_obj: Data_catalog_data_offerings;
     comments:string;
-    user: User;
+    user_obj: User;
 }
 
 interface ApiResponse {
-    data_catalog_data_requests: Data_catalog_data_requests;
+    data_catalog_data_requests_obj: Data_catalog_data_requests;
 }
 
 const EditSubscription = () => {
@@ -65,7 +65,7 @@ const EditSubscription = () => {
     useEffect(() => {
         axios.get<ApiResponse>(`/dataset/my_subscriptions/${id}`)
             .then(response => {
-                setData(response.data.data_catalog_data_requests);
+                setData(response.data.data_catalog_data_requests_obj);
             })
             .catch(error => {
                 console.error('Error fetching media:', error);
@@ -119,7 +119,7 @@ const EditSubscription = () => {
                                     <Label for="serviceCode">Businnes object code</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_data_offerings.data_catalog_business_object.code}
+                                        value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.code}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -131,7 +131,7 @@ const EditSubscription = () => {
                                     <Label for="serviceName">Business Object Name</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_data_offerings.data_catalog_business_object.name}
+                                        value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.name}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -145,7 +145,7 @@ const EditSubscription = () => {
                                     <Label for="serviceCode">Service Code</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.code}
+                                        value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.code}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -157,7 +157,7 @@ const EditSubscription = () => {
                                     <Label for="serviceName">Service Name</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.name}
+                                        value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.name}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -171,7 +171,7 @@ const EditSubscription = () => {
                                     <Label for="serviceCode">Category Code</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.data_catalog_category.code}
+                                        value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.code}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -183,7 +183,7 @@ const EditSubscription = () => {
                                     <Label for="serviceName">Category Name</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.data_catalog_category.name}
+                                        value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.name}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -196,7 +196,7 @@ const EditSubscription = () => {
                                     <Label for="serviceCode">Offering User Id</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.user.id}
+                                        value={data?.user_obj.id}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -208,7 +208,7 @@ const EditSubscription = () => {
                                     <Label for="serviceName">Offering Username</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.user.username}
+                                        value={data?.user_obj.username}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -222,7 +222,7 @@ const EditSubscription = () => {
                                     <Label for="serviceCode">Offering Company Id</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_data_offerings.user_offering.company.id}
+                                        value={data?.data_catalog_data_offerings_obj.user_offering_obj.company_obj.id}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />
@@ -234,7 +234,7 @@ const EditSubscription = () => {
                                     <Label for="serviceName">Offering Company Name</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.data_catalog_data_offerings.user_offering.company.name}
+                                        value={data?.data_catalog_data_offerings_obj.user_offering_obj.company_obj.name}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />

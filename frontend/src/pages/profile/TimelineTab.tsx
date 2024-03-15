@@ -1,14 +1,11 @@
 import { PfImage } from '@profabric/react-components';
 import { format } from 'date-fns';
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
 import { VerticalTimeline, VerticalTimelineElement } from 'react-vertical-timeline-component';
 import 'react-vertical-timeline-component/style.min.css';
 import axios from 'axios';
 import { Button, Container } from 'react-bootstrap';
 import { DetailDataEntity, EditDataEntity } from '@app/components/helpers/Buttons';
-import { MdFileDownload, MdFileUpload, MdPadding } from 'react-icons/md'
 if (localStorage.getItem("token")) {
   axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
 }
@@ -30,7 +27,6 @@ interface ApiResponse {
 interface ResultList {
   left_side: number;
   description: string;
-  min_title: string
   title: string
   nav: string;
 }
@@ -268,7 +264,7 @@ function replaceDateString(input: string): string {
         ))}
       </VerticalTimeline>
       <div className='row' style={{ alignContent: "center", justifyContent: "center", paddingTop: "290 px" }}>
-      { !isTheLastPage && <Button className="btn btn-light" onClick={() => expandWindow()} style={{ backgroundColor: "transparent", scale: "2.5", border: "none", paddingTop: "8px", color: "rgb(33, 150, 243)" }}>
+      { !isTheLastPage && <Button className="btn btn-light" onClick={() => expandWindow()} style={{ backgroundColor: "transparent", scale: "2.5", border: "none", paddingTop: "8px", color: "rgb(33, 150, 243)" }} data-toggle="tooltip" data-placement="top" title="Expand the timeline">
           <i className="fas fa-angle-down"></i>
         </Button>}
       </div>

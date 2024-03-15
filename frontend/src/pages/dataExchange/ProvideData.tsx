@@ -7,12 +7,9 @@ import { Container, Row, Col, Form } from 'react-bootstrap';
 import Categories from '../modals/Categories';
 import Service from '../modals/Service';
 import BusinnesObject from '../modals/BusinnesObject';
-import { EditService, RequestedServices } from '@app/components/helpers/Buttons';
-import { New } from '@app/components/helpers/Buttons';
 import { EditDataEntity } from '@app/components/helpers/Buttons';
 import { NewDataEntity } from '@app/components/helpers/Buttons';
 import Pagination from '@app/components/helpers/Pagination';
-import DateForTable from '@app/components/helpers/DateForTable';
 import { Card } from 'reactstrap';
 import { format } from 'date-fns';
 if (localStorage.getItem("token")) {
@@ -45,25 +42,16 @@ interface ITableData {
   created_on: string;
   profile_selector: string;
   description: string;
-  status: string;
   subscriptions: string;
 }
-interface PaginationProps {
-  totalPages: number;
-  paginate: (pageNumber: number) => void;
-  currentPage: number;
-}
+
 const ProvideData: React.FC = () => {
   const [data, setData] = useState<ITableData[]>([]);
   const [filters, setFilters] = useState<IFilter[]>([]);
   const [activeFilter, setActiveFilter] = useState<{ parentCode: string, parentValue: string, code: string, value: string } | null>(null);
   const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
-  const [PartialApi, setPartialApi] = useState<string | null>(null);
-  const [showCategoriesModal, setShowCategoriesModal] = useState(false);
-  const [renderCategoriesModal, setRenderCategoriesModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const itemsPerPage = 10;
   const [filterValues, setFilterValues] = useState<IFilterValues>({
     data_catalog_category_name: "",
     id: "",
@@ -74,15 +62,11 @@ const ProvideData: React.FC = () => {
     status: "",
     subscriptions: ""
   });
-  /////////////////////////////////////////////////////////////////////////////
-  //const [returnedValue, setReturnedValue] = useState<string>("");
 
   const [modalStates, setModalStates] = useState({
     categoriesModal: false,
     serviceModal: false,
     BOModal: false
-    //anotherModal: false,
-
   });
 
   const [filterValuesFromModals, setFilterValuesFromModals] = useState({
@@ -94,7 +78,6 @@ const ProvideData: React.FC = () => {
   ////////////////////////////////////////////////////////////////////////////
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Call fetchData here, which will use the updated filterValues
     fetchData();
   };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -207,7 +190,7 @@ const ProvideData: React.FC = () => {
       <div style={{ paddingLeft: 20 }}>
         {children.map(child => (
           <Button
-            key={child.code} // Qui si può mantenere solo child.code se è unico tra i figli
+            key={child.code} 
             variant={activeFilter?.code === child.code && activeFilter?.value === child.value ? "primary" : "outline-secondary"}
             onClick={() => handleFilterClick(parentFilter.code, parentFilter.value, child.code, child.value)}
           >
@@ -230,7 +213,7 @@ const ProvideData: React.FC = () => {
   const cancelModalFilters = (modalName: string) => {
     setFilterValuesFromModals({
       ...filterValuesFromModals,
-      [modalName]: "" // Imposta il valore del filtro specifico a una stringa vuota
+      [modalName]: "" 
     });
   };
 
@@ -254,7 +237,7 @@ const ProvideData: React.FC = () => {
         </div>
 
         <div className='col'>
-          <Button className="btn btn-success" onClick={() => NewDataEntity()} >
+          <Button className="btn btn-success" onClick={() => NewDataEntity()} data-toggle="tooltip" data-placement="top" title="Provide a new data">
             New   <i className="fa fa-plus"></i>
           </Button>
         </div>
@@ -262,7 +245,7 @@ const ProvideData: React.FC = () => {
       </div>
 
 
-      <Row style={{ paddingTop: "30px", flexWrap:"nowrap", display:"flex"}}>
+      <Row style={{ paddingTop: "30px", flexWrap: "nowrap", display: "flex" }}>
         <Col md={2} style={{ display: 'flex', flexDirection: 'column' }}>
           <Card>
             <h5 style={{ paddingLeft: "10px", paddingTop: "10px" }}><b>Offered Services Categorization</b></h5>
@@ -367,7 +350,7 @@ const ProvideData: React.FC = () => {
                     <th scope="row">{(((currentPage - 1)) * 10) + index + 1}</th>
                     <td>
                       <div className='row'>
-                        <Button variant="outline-light" className="btn btn-primary" onClick={() => EditDataEntity(item?.id)}>
+                        <Button variant="outline-light" className="btn btn-primary" onClick={() => EditDataEntity(item?.id)} data-toggle="tooltip" data-placement="top" title="Change the data provided">
                           <i className="fas fa-pencil-alt"></i>
                         </Button>
 

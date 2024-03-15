@@ -22,7 +22,7 @@ const ForgotPassword = () => {
     onSubmit: (values) => {
       toast.warn('Not yet functional');
       // eslint-disable-next-line no-console
-      console.log('values', values);
+     
     }
   });
 

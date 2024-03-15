@@ -17,13 +17,13 @@ interface Data_catalog_category {
 interface Data_catalog_service {
   code: string;
   name: string;
-  data_catalog_category: Data_catalog_category;
+  data_catalog_category_obj: Data_catalog_category;
   short_description: string;
 }
 
 
 interface Data_catalog_business_object {
-  data_catalog_service: Data_catalog_service;
+  data_catalog_service_obj: Data_catalog_service;
   name: string;
   code: string;
 
@@ -31,7 +31,7 @@ interface Data_catalog_business_object {
 }
 interface Data_catalog_data_offerings {
   file_schema_filename: string;
-  data_catalog_business_object: Data_catalog_business_object;
+  data_catalog_business_object_obj: Data_catalog_business_object;
   title: string;
   profile_description: string;
   profile_selector: string;
@@ -50,13 +50,13 @@ interface Data_send {
   file_schema_filename: string;
   file_schema_sample: string;
   file_schema: string;
-  data_catalog_data_offerings: Data_catalog_data_offerings;
+  data_catalog_data_offerings_obj: Data_catalog_data_offerings;
   data_catalog_data_offerings_id: string;
   fileName: string;
 }
 
 interface ApiResponse {
-  data_send: Data_send;
+  data_send_obj: Data_send;
 }
 const EditDataEntity = () => {
   const location = useLocation();
@@ -71,7 +71,7 @@ const EditDataEntity = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get<ApiResponse>(`/dataset/data_provided/${id}`);
-        setData(response.data.data_send);
+        setData(response.data.data_send_obj);
       } catch (error) {
         console.error('Error fetching data: ', error);
       }
@@ -104,25 +104,25 @@ const EditDataEntity = () => {
           <ListGroup.Item><Label for="id">Data Offering</Label>
             <Input type="text" name="id" id="id" value={data?.data_catalog_data_offerings_id} /></ListGroup.Item>
           <ListGroup.Item><Label for="title">Title</Label>
-            <Input type="text" name="title" id="title" value={data?.data_catalog_data_offerings.title} /></ListGroup.Item>
+            <Input type="text" name="title" id="title" value={data?.data_catalog_data_offerings_obj.title} /></ListGroup.Item>
           <ListGroup.Item><Label for="id">Profile Format</Label>
-            <Input type="text" name="id" id="id" value={data?.data_catalog_data_offerings.profile_selector} /></ListGroup.Item>
+            <Input type="text" name="id" id="id" value={data?.data_catalog_data_offerings_obj.profile_selector} /></ListGroup.Item>
           <ListGroup.Item><Label for="id">Profile Description</Label>
-            <Input type="text" name="id" id="id" value={data?.data_catalog_data_offerings.profile_description} /></ListGroup.Item>
+            <Input type="text" name="id" id="id" value={data?.data_catalog_data_offerings_obj.profile_description} /></ListGroup.Item>
         </ListGroup>
         <div className='row' >
           <div className='col' >
             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Business Object Code</Label>
               <Form.Control
                 type="text"
-                value={data?.data_catalog_data_offerings.data_catalog_business_object.code}
+                value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.code}
               /></ListGroup.Item>
           </div>
           <div className='col'>
             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Business Object Name</Label>
               <Form.Control
                 type="text"
-                value={data?.data_catalog_data_offerings.data_catalog_business_object.name}
+                value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.name}
               /></ListGroup.Item>
           </div>
         </div>
@@ -131,14 +131,14 @@ const EditDataEntity = () => {
             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Service Code</Label>
               <Form.Control
                 type="text"
-                value={data?.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.code}
+                value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.code}
               /></ListGroup.Item>
           </div>
           <div className='col'>
             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Service Name</Label>
               <Form.Control
                 type="text"
-                value={data?.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.name}
+                value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.name}
               /></ListGroup.Item>
           </div>
         </div>
@@ -147,14 +147,14 @@ const EditDataEntity = () => {
             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Category Code</Label>
               <Form.Control
                 type="text"
-                value={data?.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.data_catalog_category.code}
+                value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.code}
               /></ListGroup.Item>
           </div>
           <div className='col'>
             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Category Name</Label>
               <Form.Control
                 type="text"
-                value={data?.data_catalog_data_offerings.data_catalog_business_object.data_catalog_service.data_catalog_category.name}
+                value={data?.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.name}
               /></ListGroup.Item>
           </div>
         </div>

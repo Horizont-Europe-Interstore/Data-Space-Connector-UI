@@ -12,7 +12,7 @@ interface DataCatalogCategory {
     code: string;
     name: string;
     id: string;
-    short_order: string;
+    short_order: string | null;
 }
 
 interface DataCatalogService {
@@ -21,8 +21,8 @@ interface DataCatalogService {
     code: string;
     name: string;
     id: string;
-    short_order: string;
-    data_catalog_category: DataCatalogCategory;
+    short_order: string | null;
+    data_catalog_category_obj: DataCatalogCategory; // Corrected to match your JSON structure
 }
 
 interface DataCatalogBusinessObject {
@@ -31,19 +31,20 @@ interface DataCatalogBusinessObject {
     code: string;
     profile_description: string;
     file_schema_sample_filename: string;
-    short_order: string;
+    short_order: string | null;
     data_catalog_service_id: string;
     file_schema_sample: string;
     profile_selector: string;
     name: string;
     id: string;
-    data_catalog_service: DataCatalogService;
     status: string;
+    data_catalog_service_obj: DataCatalogService; // Corrected to match your JSON structure
 }
 
 interface ApiResponse {
-    data_catalog_business_object: DataCatalogBusinessObject;
+    data_catalog_business_object_obj: DataCatalogBusinessObject;
 }
+
 
 const DetailService = () => {
     const location = useLocation();
@@ -56,7 +57,7 @@ const DetailService = () => {
         const fetchData = async () => {
             try {
                 const response = await axios.get<ApiResponse>(`/dataset/cross_platform_service/${id}`);
-                setData(response.data.data_catalog_business_object);
+                setData(response.data.data_catalog_business_object_obj);
             } catch (error) {
                 console.error('Error fetching data: ', error);
             }
@@ -152,7 +153,7 @@ const DetailService = () => {
                     <ListGroup.Item><Label for="id">Select service</Label>
                         <Form.Control
                             type="text"
-                            value={data.data_catalog_service.code}
+                            value={data.data_catalog_service_obj.code}
                             aria-label="Disabled input example"
                             readOnly
                         />
@@ -160,7 +161,7 @@ const DetailService = () => {
                     <ListGroup.Item><Label for="id">Service Name</Label>
                         <Form.Control
                             type="text"
-                            value={data.data_catalog_service.name}
+                            value={data.data_catalog_service_obj.name}
                             aria-label="Disabled input example"
                             readOnly
                         />
@@ -168,7 +169,7 @@ const DetailService = () => {
                     <ListGroup.Item><Label for="id">Service Short Description</Label>
                         <Form.Control
                             type="text"
-                            value={data.data_catalog_service.short_description}
+                            value={data.data_catalog_service_obj.short_description}
                             aria-label="Disabled input example"
                             readOnly
                         />
@@ -176,7 +177,7 @@ const DetailService = () => {
                     <ListGroup.Item><Label for="id">Category Code</Label>
                         <Form.Control
                             type="text"
-                            value={data.data_catalog_service.data_catalog_category.code}
+                            value={data.data_catalog_service_obj.data_catalog_category_obj.code}
                             aria-label="Disabled input example"
                             readOnly
                         />
@@ -184,7 +185,7 @@ const DetailService = () => {
                     <ListGroup.Item><Label for="id">Category Name</Label>
                         <Form.Control
                             type="text"
-                            value={data.data_catalog_service.data_catalog_category.name}
+                            value={data.data_catalog_service_obj.data_catalog_category_obj.name}
                             aria-label="Disabled input example"
                             readOnly
                         />
@@ -283,7 +284,7 @@ const DetailService = () => {
                     <ListGroup.Item><Label for="id">Profile Description</Label>
                         <Form.Control
                             type="text"
-                            value={data.profile_selector}
+                            value={data.profile_description}
                             aria-label="Disabled input example"
                             readOnly
                         />

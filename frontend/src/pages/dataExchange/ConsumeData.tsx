@@ -360,7 +360,7 @@ const ConsumeData: React.FC = () => {
                     <th scope="row">{(((currentPage -1)) * 10) + index + 1}</th>
                     <td>
                       <div className='row'>
-                        <Button variant="outline-light" className="btn btn-primary" onClick={() => DetailDataEntity(item?.id)}>
+                        <Button variant="outline-light" className="btn btn-primary" onClick={() => DetailDataEntity(item?.id)} data-toggle="tooltip" data-placement="top" title="View data details">
                           <i className="fas fa-search"></i>
                         </Button>
 
