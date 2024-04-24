@@ -8,15 +8,15 @@ import Categories from '../modals/Categories';
 import Service from '../modals/Service';
 import BusinnesObject from '../modals/BusinnesObject';
 import { EditSubscription } from '@app/components/helpers/Buttons';
-import Offering from '../modals/Offering';
-import Inner from '@app/components/helpers/InnerHtml';
+import UserRequesting from '../modals/Userequesting';
 import Pagination from '@app/components/helpers/Pagination';
 import { NewSubscription } from '@app/components/helpers/Buttons';
 import { format } from 'date-fns';
+import checkLevel from '@app/components/helpers/CheckLevel';
 if (localStorage.getItem("token")) {
     axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
 }
-const API_URL_FILTERS = "/list/left-grouping/results?id=607fe472-e51d-44c5-a9c3-ba8ec09208d0&ft_id_offering=0db22a09-e67e-4e3d-8190-5e6c68793116&language-id=2";
+const API_URL_FILTERS = "/datalist/left-grouping/my_subscriptions";
 const API_URL_DATA = "/datalist/my_subscriptions/page/";
 
 interface IFilterValues {
@@ -40,7 +40,7 @@ interface IFilter {
     code: string;
     value: string;
     count: number;
-    parent: IFilter | null;
+    parrent: IFilter;
     children: IFilter[];
 }
 interface ITableData {
@@ -52,7 +52,7 @@ interface ITableData {
     profile_description: string;
     sqlf_11: string;
     sqlf_12: string;
-    category: string;
+    category_name: string;
     created_on: string;
     sqlf_8: string;
     status: string;
@@ -60,12 +60,13 @@ interface ITableData {
     user_offering: string;
     totalPages: string;
     my_subscription_id: string;
+    category_code: string;
 }
 const MySubscriptions: React.FC = () => {
     const [data, setData] = useState<ITableData[]>([]);
     const [filters, setFilters] = useState<IFilter[]>([]);
-    const [activeFilter, setActiveFilter] = useState<{ parentCode: string, parentValue: string, code: string, value: string } | null>(null);
-    const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
+    type ExpandedFiltersByLevel = { [level: number]: string | null };
+    const [expandedFiltersByLevel, setExpandedFiltersByLevel] = useState<ExpandedFiltersByLevel>({});
     const [filterValues, setFilterValues] = useState<IFilterValues>({
         sqlf_10: "",
         cf_id: "",
@@ -92,23 +93,30 @@ const MySubscriptions: React.FC = () => {
         userRequestingModal: false
     });
 
-    const [filterValuesFromModals, setFilterValuesFromModals] = useState({
-        ft_id: "",
-        ft_id2: "",
-        catalog_business_object_id: "",
-        offeringModal_id: "",
-        userRequestingModal_id: ""
+    type FilterValuesFromModals = {
+        category_id: ModalFilter;
+        service_id: ModalFilter;
+        business_object_id: ModalFilter;
+        user_requesting_id: ModalFilter;
+
+    }
+
+    const [filterValuesFromModals, setFilterValuesFromModals] = useState<FilterValuesFromModals>({
+        category_id: { name: "", id: "" },
+        service_id: { name: "", id: "" },
+        business_object_id: { name: "", id: "" },
+        user_requesting_id: { name: "", id: "" },
+
 
     });
+
+
+
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
 
-    useEffect(() => {
-        fetchData();
-    }, [currentPage]);
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // Call fetchData here, which will use the updated filterValues
         fetchData();
     };
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,12 +124,11 @@ const MySubscriptions: React.FC = () => {
         const value = e.target.value;
         setFilterValues(prevState => ({ ...prevState, [key]: value }));
         setCurrentPage(1)
-        //setFilterValues({ ...filterValues, [e.target.name]: e.target.value });
     };
 
     useEffect(() => {
         fetchData();
-    }, [activeFilter, filterValuesFromModals]);
+    }, [filterValuesFromModals, expandedFiltersByLevel, currentPage]);
 
     useEffect(() => {
         fetchFilters();
@@ -138,35 +145,32 @@ const MySubscriptions: React.FC = () => {
 
     const generateFilterQuery = () => {
         let query = '';
+        let index = 0;
         const filterKeys: (keyof IFilterValues)[] = ['sqlf_10', 'title', 'sqlf_9', 'profile_selector', 'profile_description', 'sqlf_11', 'sqlf_12', 'cf_id', 'category', 'created_on', 'sqlf_8', 'status', 'comments', 'user_offering'];
 
         filterKeys.forEach(key => {
             if (filterValues[key]) {
-                query += `&${encodeURIComponent(key)}=${encodeURIComponent(filterValues[key])}`;
+                if (index > 0) {
+                    query += `&`;
+                }
+                query += `${encodeURIComponent(key)}=${encodeURIComponent(filterValues[key])}`;
+                index++;
             }
         });
-        // modali
+
         for (let [key, value] of Object.entries(filterValuesFromModals)) {
-            if (value) {
-                let index = 0;
-                if (key === "ft_id2") {
-                    key = "ft_id"
+            if (value.id) {
+                if (key === "user_requesting_id") {
+                    key = "user_offering_id"
                 }
-                if (key in filterValues) {
-                    const safeKey = key as keyof IFilterValues;
+                if (index > 0) {
+                    query += `&`;
 
-                    if (index > 0) {
-                        query += `&${encodeURIComponent(key)}=${encodeURIComponent(filterValues[safeKey])}`;
-
-                    } else {
-                        query += `${encodeURIComponent(key)}=${encodeURIComponent(filterValues[safeKey])}`;
-                        index = index + 1;
-                    }
                 }
+                query += `${encodeURIComponent(key)}=${encodeURIComponent(value.id)}`;
+                index++;
             }
         }
-
-        //query += '&language-id=2';
         return query;
     };
 
@@ -174,11 +178,25 @@ const MySubscriptions: React.FC = () => {
         try {
             let filterQuery = '';
             let filter2Query = generateFilterQuery();
-            if (activeFilter) {
-                filterQuery = `&${encodeURIComponent(activeFilter.parentCode)}=${encodeURIComponent(activeFilter.parentValue)}&${encodeURIComponent(activeFilter.code)}=${encodeURIComponent(activeFilter.value)}`;
+            if (expandedFiltersByLevel[0]) {
+
+                filterQuery = `&${encodeURIComponent("category_grouping")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
             }
 
-            const response = await axios.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA}${currentPage - 1}?${filterQuery}${filter2Query}`);
+            if (expandedFiltersByLevel[1]) {
+
+                filterQuery = filterQuery + `&${encodeURIComponent("service_grouping")}=${encodeURIComponent(expandedFiltersByLevel[1])}`;
+            }
+            if (expandedFiltersByLevel[2]) {
+
+                filterQuery = filterQuery + `&${encodeURIComponent("business_object_grouping")}=${encodeURIComponent(expandedFiltersByLevel[2])}`;
+            }
+            if (expandedFiltersByLevel[3]) {
+
+                filterQuery = filterQuery + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
+            }
+
+            const response = await axios.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}`);
             setData(response.data.listContent);
             setTotalPages(response.data.totalPages);
         } catch (error) {
@@ -189,56 +207,58 @@ const MySubscriptions: React.FC = () => {
 
 
 
-    const toggleExpand = (filterKey: string) => {
-        setExpandedFilter(expandedFilter !== filterKey ? filterKey : null);
+    const toggleExpand = (filterKey: string, level: number, parrent: string) => {
+
+        if (checkLevel(filterKey, expandedFiltersByLevel, parrent)) {
+            clearActiveFilter()
+        }
+        setExpandedFiltersByLevel(prev => ({
+            ...prev,
+            [level]: prev[level] === filterKey ? null : filterKey
+        }));
+        setCurrentPage(1)
     };
 
-    const handleFilterClick = (parentCode: string, parentValue: string, childCode: string, childValue: string) => {
-        setActiveFilter({ parentCode, parentValue, code: childCode, value: childValue });
+    const renderButtonGroup = (filters: IFilter[], level = 0, parentKey = ''): JSX.Element[] => {
+        return filters.map((filter, index) => {
+            const filterKey = `${parentKey}${filter.code}-${filter.value}-${index}`;
+            return (
+                <div key={filterKey}>
+                    <Button
+                        variant="link"
+                        onClick={() => toggleExpand(filter.value, level, filter?.parrent?.value)}
+                    >
+                        <div style={{ fontSize: '0.8rem', textAlign: "left" }}>
+                            {expandedFiltersByLevel[level] === filter.value ? '-' : '+'} {filter.value}
+                        </div>
+                    </Button>
+                    {expandedFiltersByLevel[level] === filter.value && filter.children && (
+                        <div style={{ paddingLeft: '20px' }}>
+                            {renderButtonGroup(filter.children, level + 1, filterKey)}
+                        </div>
+                    )}
+                </div>
+            );
+        });
+    };
+    const representHierarchy = () => {
+        let hierarchy = Object.values(expandedFiltersByLevel).join(" >> ");
+        return hierarchy;
+    };
+
+    const renderActiveFilter = () => {
+        return representHierarchy() && (
+            <div>
+                <p style={{ display: 'inline' }}>Active Filters: <br></br> <b>{representHierarchy()}</b> <div style={{ display: 'inline-flex', scale: "0.6", marginLeft: '5px' }}>
+                    <Button variant="outline-danger" onClick={clearActiveFilter}> <i className="fas fa-trash" style={{ color: 'red' }}></i> </Button>
+                </div></p>
+            </div>
+        );
     };
 
     const clearActiveFilter = () => {
-        setActiveFilter(null);
-    };
-
-    const renderButtonGroup = (filters: IFilter[]) => {
-        return filters.map((filter, index) => (
-            <div key={`${filter.code}-${filter.value}`}>
-                <span>
-                    <Button variant="link" onClick={() => toggleExpand(`${filter.code}-${filter.value}`)}>
-                        {expandedFilter === `${filter.code}-${filter.value}` ? '-' : '+'}
-                    </Button>
-                    {filter.value}
-                </span>
-                {renderFilterChildren(filter, filter.children)}
-            </div>
-        ));
-    };
-
-    const renderFilterChildren = (parentFilter: IFilter, children: IFilter[]) => {
-        return expandedFilter === `${parentFilter.code}-${parentFilter.value}` && (
-            <div style={{ paddingLeft: 20 }}>
-                {children.map(child => (
-                    <Button
-                        key={child.code} // Qui si può mantenere solo child.code se è unico tra i figli
-                        variant={activeFilter?.code === child.code && activeFilter?.value === child.value ? "primary" : "outline-secondary"}
-                        onClick={() => handleFilterClick(parentFilter.code, parentFilter.value, child.code, child.value)}
-                    >
-                        {child.value}
-                    </Button>
-                ))}
-            </div>
-        );
-    };
-
-
-    const renderActiveFilter = () => {
-        return activeFilter && (
-            <div>
-                <p>Active Filter: {activeFilter.value}</p>
-                <Button variant="outline-danger" onClick={clearActiveFilter}>Clear Filter</Button>
-            </div>
-        );
+        setExpandedFiltersByLevel([]);
+        setCurrentPage(1)
     };
 
 
@@ -247,6 +267,7 @@ const MySubscriptions: React.FC = () => {
             ...filterValuesFromModals,
             [modalName]: ""
         });
+        setCurrentPage(1)
     };
 
     const handleOpenModal = (modalName: string) => {
@@ -256,9 +277,13 @@ const MySubscriptions: React.FC = () => {
     const handleCloseModal = (modalName: string) => {
         setModalStates({ ...modalStates, [modalName]: false });
     };
-
-    const handleModalDataChange = (modalName: string, value: string) => {
+    type ModalFilter = {
+        name: string;
+        id: string;
+    }
+    const handleModalDataChange = (modalName: string, value: ModalFilter) => {
         setFilterValuesFromModals({ ...filterValuesFromModals, [modalName]: value });
+        setCurrentPage(1)
     };
 
     return (
@@ -277,13 +302,15 @@ const MySubscriptions: React.FC = () => {
                 </div>
 
             </div>
-            <Row style={{ paddingTop: "30px", flexWrap:"nowrap", display:"flex"}}>
+            <Row style={{ paddingTop: "30px", flexWrap: "nowrap", display: "flex" }}>
                 <Col md={2} style={{ display: 'flex', flexDirection: 'column' }}>
                     <Card>
                         <h5 style={{ paddingLeft: "10px", paddingTop: "10px" }}><b> Categorization </b></h5>
                         <h6 style={{ padding: "10px" }}>Navigate & Filter Data Requests by Category, Service, Business Object & User categorization tree</h6>
                         {renderButtonGroup(filters)}
-                        {renderActiveFilter()}
+                        <div style={{ padding: "15px" }}>
+                            {renderActiveFilter()}
+                        </div>
                     </Card>
                     <Card>
                         <h5 style={{ paddingLeft: "10px", paddingTop: "10px" }}><b>Filters</b></h5>
@@ -293,29 +320,13 @@ const MySubscriptions: React.FC = () => {
                             <tbody>
                                 <tr>
                                     <td>
-                                        <div className="input-group " style={{ transform: "scale(0.8)" }}>
-                                            <button onClick={() => handleOpenModal('offeringModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
-                                                <i className="fas fa-search"></i>
-                                                Offering
-                                            </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.offeringModal_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
-                                            <button onClick={() => cancelModalFilters('offeringModal_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
-                                                <i className="fas fa-trash"></i>
-
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td>
-                                        <div className="input-group " style={{ transform: "scale(0.8)" }}>
+                                        <div className="input-group" style={{ transform: "scale(0.8)" }}>
                                             <button onClick={() => handleOpenModal('categoriesModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-search"></i>
                                                 Categories
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.ft_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
-                                            <button onClick={() => cancelModalFilters('ft_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
+                                            <input className="form-control" placeholder={filterValuesFromModals.category_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <button onClick={() => cancelModalFilters('category_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
 
                                             </button>
@@ -324,13 +335,13 @@ const MySubscriptions: React.FC = () => {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <div className="input-group " style={{ transform: "scale(0.8)" }}>
+                                        <div className="input-group" style={{ transform: "scale(0.8)" }}>
                                             <button onClick={() => handleOpenModal('serviceModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-search"></i>
                                                 Service
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.ft_id2} aria-label="Example text with button addon" aria-describedby="button-addon1" />
-                                            <button onClick={() => cancelModalFilters('ft_id2')} className="btn btn-outline-secondary" type="button" id="button-addon1">
+                                            <input className="form-control" placeholder={filterValuesFromModals.service_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <button onClick={() => cancelModalFilters('service_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
 
                                             </button>
@@ -344,8 +355,8 @@ const MySubscriptions: React.FC = () => {
                                                 <i className="fas fa-search"></i>
                                                 Businnes object
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.catalog_business_object_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
-                                            <button onClick={() => cancelModalFilters('catalog_business_object_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
+                                            <input className="form-control" placeholder={filterValuesFromModals.business_object_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <button onClick={() => cancelModalFilters('business_object_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -354,12 +365,12 @@ const MySubscriptions: React.FC = () => {
                                 <tr>
                                     <td>
                                         <div className="input-group" style={{ transform: "scale(0.8)" }}>
-                                            <button onClick={() => handleOpenModal('businnesObjectModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
+                                            <button onClick={() => handleOpenModal('userRequestingModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-search"></i>
-                                                User Requesting
+                                                Offering owner
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.catalog_business_object_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
-                                            <button onClick={() => cancelModalFilters('catalog_business_object_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
+                                            <input className="form-control" placeholder={filterValuesFromModals.user_requesting_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <button onClick={() => cancelModalFilters('user_requesting_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -376,9 +387,9 @@ const MySubscriptions: React.FC = () => {
                                 <tr>
                                     <th>#</th>
                                     <th></th>
-                                    {/* <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category</th> */}
+                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category</th>
                                     <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title </th>
-                                    {/* <th style={{ textAlign: "center", verticalAlign: "middle" }}>User Offering</th> */}
+                                    {/* <th style={{ textAlign: "center", verticalAlign: "middle" }}>User Offering</th>  */}
                                     <th style={{ textAlign: "center", verticalAlign: "middle" }}>Status</th>
                                     <th style={{ textAlign: "center", verticalAlign: "middle" }}>Created on</th>
                                     <th style={{ textAlign: "center", verticalAlign: "middle" }}>Comments</th>
@@ -391,6 +402,13 @@ const MySubscriptions: React.FC = () => {
                                     <td></td>
                                     <td></td>
                                     <td></td>
+                                    <td><Form.Control
+                                        type="text"
+                                        name="title"
+                                        placeholder="Filter"
+                                        value={filterValues.title}
+                                        onChange={handleInputChange}
+                                    /></td>
                                     <td><Form.Control
                                         type="text"
                                         name="status"
@@ -437,9 +455,9 @@ const MySubscriptions: React.FC = () => {
                                                 <i className="fas fa-pencil-alt"></i>
                                             </Button>
                                         </td>
-                                        {/* <td>{Inner(item.category)}</td> */}
+                                        <td>{item.category_code + " - " + item.category_name}</td>
                                         <td>{item.title}</td>
-                                        {/* <td>{Inner(item.user_offering)}</td> */}
+                                        {/* <td>{item.user_offering}</td>  */}
                                         <td>{item.status}</td>
                                         <td>{format(new Date(item.created_on), 'dd/MM/yyyy HH:mm')}</td>
                                         <td>{item.comments}</td>
@@ -449,19 +467,12 @@ const MySubscriptions: React.FC = () => {
                                             whiteSpace: "nowrap",
                                             overflow: "hidden",
                                             textOverflow: "ellipsis"
-                                        }} data-toggle="tooltip" data-placement="top" title={item.profile_description}>{item.profile_description }
+                                        }} data-toggle="tooltip" data-placement="top" title={item.profile_description}>{item.profile_description}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </Table>
-                        {modalStates.offeringModal && (
-                            <Offering
-                                show={modalStates.offeringModal}
-                                handleClose={() => handleCloseModal('offeringModal')}
-                                onModalDataChange={handleModalDataChange}
-                            />
-                        )}
                         {modalStates.categoriesModal && (
                             <Categories
                                 show={modalStates.categoriesModal}
@@ -484,7 +495,7 @@ const MySubscriptions: React.FC = () => {
                             />
                         )}
                         {modalStates.userRequestingModal && (
-                            <Categories
+                            <UserRequesting
                                 show={modalStates.userRequestingModal}
                                 handleClose={() => handleCloseModal('userRequestingModal')}
                                 onModalDataChange={handleModalDataChange}

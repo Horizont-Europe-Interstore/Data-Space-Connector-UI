@@ -121,8 +121,6 @@ fetchData();
       setCurrentPage(currentPage - 1);
       console.error('Error fetching data:', error);
     }
-
-
   }
 
   const setTabProperties = (side: number) => {
@@ -243,7 +241,7 @@ function replaceDateString(input: string): string {
             <h3 className="vertical-timeline-element-title"><b>{item.title}</b></h3>
             <p dangerouslySetInnerHTML={{ __html: replaceDateString(item.description) }}></p>
 
-            {item.left_side === 0 && checkResults[mysubstring(item.nav)] && checkResults[mysubstring(item.nav)] !== "NaN" && <a href={"https://mumbai.polygonscan.com/address/" + checkResults[mysubstring(item.nav)]} target="_blank" rel="noopener noreferrer">link to the smart contract</a>}
+            {item.left_side === 0 && checkResults[mysubstring(item.nav)] && checkResults[mysubstring(item.nav)] !== "NaN" && <a href={"https://www.oklink.com/amoy/address/" + checkResults[mysubstring(item.nav)]} target="_blank" rel="noopener noreferrer">link to the smart contract</a>}
             {item.left_side === 0 && checkResults[mysubstring(item.nav)] && checkResults[mysubstring(item.nav)] === "NaN" && <b style={{ color: "red" }}>There is no smart contract available for this data</b>}
             <div className='row'>
               

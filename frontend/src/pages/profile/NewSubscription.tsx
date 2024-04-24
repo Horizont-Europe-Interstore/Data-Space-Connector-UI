@@ -190,7 +190,7 @@ const NewSubscription = () => {
                                     <div className="input-group mb-3">
                                         <button onClick={() => handleOpenModal('offeringModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                             <i className="fas fa-search"></i>
-                                            Offering
+                                            Select offering: {data?.title}
                                         </button>
 
                                     </div>

@@ -7,6 +7,7 @@ import React, { useState, useEffect, ChangeEvent } from 'react';
 import axios from 'axios';
 import BusinnesObject from '../modals/BusinnesObject_CreateService';
 import { toast } from 'react-toastify';
+import { DateTime } from 'luxon';
 interface User_1_1 {
   id: string;
   email: string;
@@ -89,11 +90,11 @@ interface User {
   username: string;
   data_app_url: string;
 }
-//use_custom_semantics: string;
 interface DataCatalogDataOfferings {
-  id: null ;
+  id: null;
   file_schema_filename: string;
-
+  active_from_enable: number;
+  active_to_enable: number;
   file_schema: string;
   comments: string;
   input_data_source: string;
@@ -120,15 +121,17 @@ interface ApiResponse {
 }
 
 const CreateService = () => {
+
   const formatDateFromData = (dateString: string): string => {
     let formattedDate = dateString.replace(' ', 'T').slice(0, 16);
     return formattedDate;
   }
   const data_catalog_data_offerings: DataCatalogDataOfferings = {
+    active_from_enable: 0,
+    active_to_enable: 0,
     status: "active",
     id: null,
     file_schema_filename: "",
-    //use_custom_semantics: "",
     file_schema: "",
     comments: "",
     input_data_source: "",
@@ -216,35 +219,36 @@ const CreateService = () => {
       data_app_url: ""
     },
     title: '',
-    active_to: '',
-    active_from: ''
+    active_to: buildDefaultActiveTo(),
+    active_from: new Date().toISOString()
   };
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const id = queryParams.get('id');
   const [data, setData] = useState<DataCatalogDataOfferings | null>(data_catalog_data_offerings);
-  const [fileName, setFileName] = useState<string>('');
-  const [fileBase64, setFileBase64] = useState<string>('');
   const [modalStates, setModalStates] = useState({
     BOModal: false
   });
 
   const [cardElements, setCardElements] = useState({
-
+    businnesObjectName: "",
     serviceCode: "",
     serviceName: "",
     categoryCode: "",
     categoryName: "",
-
   });
   const [filterValuesFromModals, setFilterValuesFromModals] = useState({
-
     catalog_business_object_id: ""
-
   });
 
+  function buildDefaultActiveTo() {
+    let today = new Date();
+    let activeTo = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000)
+    return activeTo.toISOString()
+  }
+
   async function saveRequest() {
-    if (!data?.title || !data?.data_catalog_business_object_id ) {
+    if (!data?.title || !data?.data_catalog_business_object_id) {
       toast.error('Please fill out all required fields(*).');
       return;
     }
@@ -269,18 +273,19 @@ const CreateService = () => {
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    const formattedDate = (date.toISOString()).replace(/\.(\d{3})Z$/, ".0Z")
+    const formattedDate = (date.toISOString()).replace(/\.(\d{3})Z$/, ".000000Z")
     return formattedDate;
   };
 
   const handleDateChangeActiveFrom = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
     if (data) {
-      const formattedCreatedOn = (formatDate(newValue));
+      const formattedActiveFrom = (formatDate(newValue));
 
       setData({
         ...data,
-        active_from: formattedCreatedOn
+        active_from: formattedActiveFrom,
+        //active_from_enable: "1"
       });
     }
   }
@@ -291,11 +296,30 @@ const CreateService = () => {
       const formattedActive_to = (formatDate(newValue));
       setData({
         ...data,
-        active_to: formattedActive_to
+        active_to: formattedActive_to,
+        //active_to_enable: "1"
       });
     };
   }
+  const handleActiveFromEnableChange = () => {
+    setData(prevData => {
+      if (!prevData) return null;
+      return {
+        ...prevData,
+        active_from_enable: prevData.active_from_enable === 0 ? 1 : 0
+      };
+    });
+  };
 
+  const handleActiveToEnableChange = () => {
+    setData(prevData => {
+      if (!prevData) return null;
+      return {
+        ...prevData,
+        active_to_enable: prevData.active_to_enable === 0 ? 1 : 0
+      };
+    });
+  };
   const handleFileSchemaChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     if (file && data) {
@@ -347,7 +371,6 @@ const CreateService = () => {
       setData({
         ...data,
         data_catalog_business_object_id: value[0],
-
       });
 
       setCardElements({
@@ -355,14 +378,16 @@ const CreateService = () => {
         serviceName: value[2],
         categoryCode: value[3],
         categoryName: value[4],
+        businnesObjectName: value[5],
       })
+
     }
   };
 
   const handleChange = (name: keyof DataCatalogDataOfferings, value: string) => {
     setData(prevData => {
       if (prevData === null) {
-        return null; 
+        return null;
       }
       if (name in prevData) {
         return {
@@ -413,8 +438,8 @@ const CreateService = () => {
         <ListGroup variant="flush">
           <ListGroup.Item>
             <button onClick={() => handleOpenModal('BOModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
-              <i className="fas fa-search"></i>
-              Businnes objects:  {!data?.data_catalog_business_object_id && "please select one option"} {data?.data_catalog_business_object_id}
+              <i className="fas fa-search nav-io"></i>
+              Businnes object:  {!cardElements.businnesObjectName && "please select one option"} {cardElements.businnesObjectName}
             </button>
           </ListGroup.Item>
           <ListGroup.Item>
@@ -451,8 +476,60 @@ const CreateService = () => {
           </ListGroup.Item>
         </ListGroup>
       </Card>
-
       <Card >
+        <h3 className="list-group-item-heading" style={{ paddingLeft: "20px", paddingTop: "20px" }}><b>Date Restrictions</b></h3>
+        <h6 style={{ paddingLeft: " 20px" }}>On This Section You Can Restrict Access At A Specific Date Time Range For Service.</h6>
+        <ListGroup variant="flush">
+          <ListGroup.Item>
+            {data && <Row form>
+              <Col >
+                <FormGroup>
+                  <Label for="serviceCode">Active from </Label>
+                  <Input type="datetime-local" name="activeFrom" id="activeFrom" placeholder={formatDateFromData(data?.active_from)} onChange={handleDateChangeActiveFrom} />
+                </FormGroup>
+              </Col>
+              <Col md={3} className="d-flex justify-content-center align-items-center">
+                <FormGroup check className="d-flex align-items-center justify-content-md-center mb-0">
+                  <Label check className="mb-0">
+                    <Input
+                      type="checkbox"
+                      checked={data.active_from_enable === 1}
+                      onChange={handleActiveFromEnableChange}
+                    />
+                    {' '}The service is valid from the date
+                  </Label>
+                </FormGroup>
+              </Col>
+
+            </Row>}
+
+
+            {data && <Row form>
+              <Col >
+                <FormGroup >
+                  <Label for="serviceCode">Active to</Label>
+                  <Input type="datetime-local" name="activeTo" id="activeTo" placeholder={formatDateFromData(data?.active_to)} onChange={handleDateChangeActiveTo} />
+                </FormGroup >
+              </Col>
+              <Col md={3} className="d-flex justify-content-center align-items-center">
+                <FormGroup check className="d-flex align-items-center justify-content-md-center mb-0">
+                  <Label check className="mb-0">
+                    <Input
+                      type="checkbox"
+                      checked={data.active_to_enable === 1}
+                      onChange={handleActiveToEnableChange}
+                    />
+                    {' '}The service is valid until the date
+                  </Label>
+                </FormGroup>
+              </Col>
+            </Row>}
+
+          </ListGroup.Item>
+
+        </ListGroup>
+      </Card>
+      {/* <Card >
         <h3 className="list-group-item-heading" style={{ paddingLeft: "20px", paddingTop: "20px" }}> <b>Date Restrictions</b></h3>
         <h6 className="list-group-item-heading" style={{ paddingLeft: " 20px" }}>On This Section You Can Restrict Access At A Specific Date Time Range For Service</h6>
         <ListGroup variant="flush">
@@ -473,7 +550,7 @@ const CreateService = () => {
             </Row>}
           </ListGroup.Item>
         </ListGroup>
-      </Card>
+      </Card> */}
 
       <Card >
         <h3 className="list-group-item-heading" style={{ paddingLeft: "20px", paddingTop: "20px" }}> <b>Semantic Definition</b> </h3>

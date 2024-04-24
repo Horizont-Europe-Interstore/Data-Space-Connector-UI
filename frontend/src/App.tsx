@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import Main from '@modules/main/Main';
@@ -20,7 +22,6 @@ import EditService from './pages/profile/EditService';
 import PublicRoute from './routes/PublicRoute';
 import PrivateRoute from './routes/PrivateRoute';
 import { setAuthentication } from './store/reducers/auth';
-import RequestedServicesList from './pages/profile/RequestedServicesList';
 import DetailedService from './pages/profile/DetailService';
 import Requests from './pages/services/Requests';
 import CreateService from './pages/profile/CreateService';
@@ -39,13 +40,11 @@ import {
   getAuthStatus,
 } from './utils/oidc-providers';
 import axios from 'axios';
-
 const App = () => {
   const windowSize = useWindowSize();
   const screenSize = useSelector((state: any) => state.ui.screenSize);
   const dispatch = useDispatch();
   const [isAppLoading, setIsAppLoading] = useState(true);
-  //axios.defaults.baseURL = import.meta.env.VITE_API_URL;
   axios.defaults.baseURL = (window as any)["env"]["apiUrl"];
   const checkSession = async () => {
     try {
@@ -53,7 +52,6 @@ const App = () => {
         
         getAuthStatus(),
       ]);
-
       responses = responses.filter((r: any) => Boolean(r));
 
       if (responses && responses.length > 0) {
@@ -109,7 +107,7 @@ const App = () => {
             <Route path="/createService" element={<CreateService />} />
 
             <Route path="/requests" element={<Requests />} />
-            <Route path="/requestedServices" element={<RequestedServicesList />} />
+           
             <Route path="/editRequestedService" element={<EditRequestedService />} />
             <Route path="/mySubscriptions" element={<MySubscriptions />} />
 

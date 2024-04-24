@@ -4,17 +4,14 @@ import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Form, Card } from 'react-bootstrap';
-import { New, DetailService } from '@app/components/helpers/Buttons';
+import { DetailService } from '@app/components/helpers/Buttons';
 import Pagination from '@app/components/helpers/Pagination';
-
+import checkLevel from '@app/components/helpers/CheckLevel';
 if (localStorage.getItem("token")) {
   axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
 }
-
-const API_URL_FILTERS = "/list/left-grouping/results?id=19068e51-d124-40c2-8773-0954d41719b7&ft_status=disable";
+const API_URL_FILTERS = "/datalist/left-grouping/cross_platform_service";
 const API_URL_DATA = "/datalist/cross_platform_service/page/";
-
-
 
 interface IFilterValues {
   service: string;
@@ -27,11 +24,9 @@ interface IFilterValues {
 }
 
 interface IFilter {
-  id: string | null;
   code: string;
   value: string;
-  count: number;
-  parent: IFilter | null;
+  parrent: IFilter;
   children: IFilter[];
 }
 
@@ -39,7 +34,7 @@ interface ITableData {
   category: string;
   service: string;
   business_object_name: string;
-
+  category_name: string;
   service_description: string;
   business_object_code: string;
   profile_selector: string;
@@ -50,10 +45,11 @@ interface ITableData {
 const CrossPlatformServices: React.FC = () => {
   const [data, setData] = useState<ITableData[]>([]);
   const [filters, setFilters] = useState<IFilter[]>([]);
-  const [activeFilter, setActiveFilter] = useState<{ parentCode: string, parentValue: string, code: string, value: string } | null>(null);
-  const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+
+  type ExpandedFiltersByLevel = { [level: number]: string | null };
+  const [expandedFiltersByLevel, setExpandedFiltersByLevel] = useState<ExpandedFiltersByLevel>({});
 
   const [filterValues, setFilterValues] = useState<IFilterValues>({
     service: "",
@@ -74,23 +70,15 @@ const CrossPlatformServices: React.FC = () => {
     setCurrentPage(1)
   };
 
-
   useEffect(() => {
     fetchData();
-  }, [activeFilter]);
+  }, [expandedFiltersByLevel, currentPage]);
 
   useEffect(() => {
     fetchFilters();
   }, []);
 
-  const fetchFilters = async () => {
-    try {
-      const response = await axios.get<IFilter[]>(API_URL_FILTERS);
-      setFilters(response.data.filter(element => element.value !== null));
-    } catch (error) {
-      console.error('Error fetching filters:', error);
-    }
-  };
+
 
   const generateFilterQuery = () => {
     let query = '';
@@ -115,17 +103,19 @@ const CrossPlatformServices: React.FC = () => {
     return query;
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [currentPage]);
-
   const fetchData = async () => {
     try {
       let filterQuery = '';
       let filterQuery2 = '';
       let filter2Query = generateFilterQuery();
-      if (activeFilter) {
-        filterQuery = `&${encodeURIComponent(activeFilter.parentCode)}=${encodeURIComponent(activeFilter.parentValue)}&${encodeURIComponent(activeFilter.code)}=${encodeURIComponent(activeFilter.value)}`;
+      if (expandedFiltersByLevel[0]) {
+
+        filterQuery = `&${encodeURIComponent("category_group")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
+      }
+
+      if (expandedFiltersByLevel[1]) {
+
+        filterQuery = filterQuery + `&${encodeURIComponent("service_group")}=${encodeURIComponent(expandedFiltersByLevel[1])}`;
       }
 
       if (filter2Query) {
@@ -146,70 +136,83 @@ const CrossPlatformServices: React.FC = () => {
 
 
 
-  const toggleExpand = (filterKey: string) => {
-    setExpandedFilter(expandedFilter !== filterKey ? filterKey : null);
+  const fetchFilters = async () => {
+    try {
+      const response = await axios.get<IFilter[]>(API_URL_FILTERS);
+      setFilters(response.data.filter(element => element.value !== null));
+    } catch (error) {
+      console.error('Error fetching filters:', error);
+    }
   };
 
-  const handleFilterClick = (parentCode: string, parentValue: string, childCode: string, childValue: string) => {
-    setActiveFilter({ parentCode, parentValue, code: childCode, value: childValue });
+
+
+  const toggleExpand = (filterKey: string, level: number, parrent: string) => {
+
+    if (checkLevel(filterKey, expandedFiltersByLevel, parrent)) {
+      clearActiveFilter()
+    }
+    setExpandedFiltersByLevel(prev => ({
+      ...prev,
+      [level]: prev[level] === filterKey ? null : filterKey
+    }));
+    setCurrentPage(1)
   };
 
-  const clearActiveFilter = () => {
-    setActiveFilter(null);
-  };
-
-  const renderButtonGroup = (filters: IFilter[]) => {
-    return filters.map((filter, index) => (
-      <div key={`${filter.code}-${filter.value}`}>
-        <span>
-          <Button variant="link" onClick={() => toggleExpand(`${filter.code}-${filter.value}`)}>
-            {expandedFilter === `${filter.code}-${filter.value}` ? '-' : '+'}
-          </Button>
-          {filter.value}
-        </span>
-        {renderFilterChildren(filter, filter.children)}
-      </div>
-    ));
-  };
-
-  const renderFilterChildren = (parentFilter: IFilter, children: IFilter[]) => {
-    return expandedFilter === `${parentFilter.code}-${parentFilter.value}` && (
-      <div style={{ paddingLeft: 20 }}>
-        {children.map(child => (
+  const renderButtonGroup = (filters: IFilter[], level = 0, parentKey = ''): JSX.Element[] => {
+    return filters.map((filter, index) => {
+      const filterKey = `${parentKey}${filter.code}-${filter.value}-${index}`;
+      return (
+        <div key={filterKey}>
           <Button
-            key={child.code} // Qui si può mantenere solo child.code se è unico tra i figli
-            variant={activeFilter?.code === child.code && activeFilter?.value === child.value ? "primary" : "outline-secondary"}
-            onClick={() => handleFilterClick(parentFilter.code, parentFilter.value, child.code, child.value)}
+            variant="link"
+            onClick={() => toggleExpand(filter.value, level, filter?.parrent?.value)}
           >
-            {child.value}
+            <div style={{ fontSize: '0.8rem', textAlign: "left" }}>
+              {expandedFiltersByLevel[level] === filter.value ? '-' : '+'} {filter.value}
+            </div>
           </Button>
-        ))}
-      </div>
-    );
+          {expandedFiltersByLevel[level] === filter.value && filter.children && (
+            <div style={{ paddingLeft: '20px' }}>
+              {renderButtonGroup(filter.children, level + 1, filterKey)}
+            </div>
+          )}
+        </div>
+      );
+    });
   };
-
+  const representHierarchy = () => {
+    let hierarchy = Object.values(expandedFiltersByLevel).join(" >> ");
+    return hierarchy;
+  };
 
   const renderActiveFilter = () => {
-    return activeFilter && (
+    return representHierarchy() && (
       <div>
-        <p>Active Filter: {activeFilter.value}</p>
-        <Button variant="outline-danger" onClick={clearActiveFilter}>Clear Filter</Button>
+        <p style={{ display: 'inline' }}>Active Filters: <br></br> <b>{representHierarchy()}</b> <div style={{ display: 'inline-flex', scale: "0.6", marginLeft: '5px' }}>
+          <Button variant="outline-danger" onClick={clearActiveFilter}> <i className="fas fa-trash" style={{ color: 'red' }}></i> </Button>
+        </div></p>
       </div>
     );
   };
-
+  
+  const clearActiveFilter = () => {
+    setExpandedFiltersByLevel([]);
+    setCurrentPage(1)
+  };
   return (
     <Container fluid>
       <h2><i className="fas fa-server nav-icon" ></i><b> Cross platform services</b></h2>
       <h5>Navigate to Cross Platform Services</h5>
-      <Row style={{ paddingTop: "30px", flexWrap:"nowrap", display:"flex"}}>
-
-        <Col md={2}  style={{}}>
+      <Row style={{ paddingTop: "30px", flexWrap: "nowrap", display: "flex" }}>
+        <Col md={2} >
           <Card>
             <h5 style={{ paddingLeft: "10px", paddingTop: "10px" }}><b>Cross Platform Services' Categories</b></h5>
             <h6 style={{ paddingLeft: "10px" }}>Navigate & Filter Business Objects by Category & Service categorization tree </h6>
             {renderButtonGroup(filters)}
-            {renderActiveFilter()}
+            <div style={{ padding: "15px" }}>
+              {renderActiveFilter()}
+            </div>
           </Card>
         </Col>
         <Col >
@@ -222,7 +225,6 @@ const CrossPlatformServices: React.FC = () => {
                   <th></th>
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category</th>
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Service </th>
-
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}> Service Description</th>
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>BO code</th>
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>BO Name</th>
@@ -286,7 +288,7 @@ const CrossPlatformServices: React.FC = () => {
                         <i className="fa fa-search"></i>
                       </Button>
                     </td>
-                    <td>{item.category}</td>
+                    <td>{item.category + " - " + item.category_name}</td>
                     <td>{item.service}</td>
                     <td>{item.service_description}</td>
                     <td>{item.business_object_code}</td>
@@ -300,7 +302,6 @@ const CrossPlatformServices: React.FC = () => {
               <Pagination totalPages={totalPages} paginate={paginate} currentPage={currentPage} />
             </div>
             <Button type="submit" style={{ display: 'none' }}>Invia</Button>
-
           </Form>
         </Col>
       </Row>

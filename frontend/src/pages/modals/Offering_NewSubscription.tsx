@@ -21,7 +21,7 @@ interface ITableData {
     cf_title: string;
     cf_profile_selector: string;
     cf_input_data_source: string;
-    sqlf_9_1:string
+    sqlf_9_1: string
 }
 const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChange }) => {
     const [data, setData] = useState<ITableData[]>([]);
@@ -44,14 +44,20 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
     };
 
     return (
-        <Modal show={show} onHide={handleClose} size="lg" centered>
-            <Modal.Header closeButton>
-                <h5 className="modal-title">Offering</h5>
-            </Modal.Header>
-            <Modal.Body>
-                <Container fluid style={{ backgroundColor: '#f4f4f4' }}>
-                    <Row>
-                        <div className="container mt-5">
+        <><style type="text/css">
+            {`
+        .modal-90w {
+          max-width: 90% !important;
+        }
+        `}
+        </style>
+            <Modal show={show} onHide={handleClose} dialogClassName="modal-90w">
+                <Modal.Header closeButton>
+                    <h5 className="modal-title"> Available Services</h5>
+                </Modal.Header>
+                <Modal.Body>
+                    <Container fluid style={{ backgroundColor: '#f4f4f4' }}>
+                        <Row>
                             <table className="table table-hover table-striped table-bordered table-sm">
                                 <thead>
                                     <tr>
@@ -76,7 +82,7 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
                                             </button></td>
                                             <td>{Inner(item.sqlf_10)}</td>
                                             <td>{Inner(item.sqlf_9_1)}</td>
-                                            
+
                                             <td>{item.cf_title}</td>
                                             <td>{item.sqlf_9}</td>
                                             <td>{item.cf_input_profile}</td>
@@ -85,11 +91,10 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
                                     ))}
                                 </tbody>
                             </table>
-                        </div>
-                    </Row>
-                </Container>
-            </Modal.Body>
-        </Modal>
+                        </Row>
+                    </Container>
+                </Modal.Body>
+            </Modal></>
     );
 }
 

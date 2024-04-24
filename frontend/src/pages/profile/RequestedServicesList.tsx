@@ -53,7 +53,7 @@ interface ITableData {
     created_on: string;
     status: string;
     cf_comments: string;
-    request_id:string;
+    request_id: string;
 }
 
 
@@ -61,12 +61,12 @@ const RequestedServicesList: React.FC = () => {
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const id = queryParams.get('id');
-    const API_URL_FILTERS = `/list/left-grouping/results?id=607fe472-e51d-44c5-a9c3-ba8ec09208d0&ft_id_offering=${id}&language-id=2`;
+    const API_URL_FILTERS = `/datalist/left-grouping/requests_on_offered_services?id=607fe472-e51d-44c5-a9c3-ba8ec09208d0&ft_id_offering=${id}`;
     const API_URL_DATA = `/datalist/requests_on_offered_services?ft_id_offering=${id}`;
     const [data, setData] = useState<ITableData[]>([]);
     const [filters, setFilters] = useState<IFilter[]>([]);
-    const [activeFilter, setActiveFilter] = useState<{ parentCode: string, parentValue: string, code: string, value: string } | null>(null);
-    const [expandedFilter, setExpandedFilter] = useState<string | null>(null);
+    type ExpandedFiltersByLevel = { [level: number]: string | null };
+    const [expandedFiltersByLevel, setExpandedFiltersByLevel] = useState<ExpandedFiltersByLevel>({});
     const [filterValues, setFilterValues] = useState<IFilterValues>({
         sqlf_10: "",
         data_catalog_category_id: "",
@@ -89,35 +89,34 @@ const RequestedServicesList: React.FC = () => {
         businnesObjectModal: false,
         offeringModal: false,
         userRequestingModal: false
-        //anotherModal: false,
-
     });
 
     const [filterValuesFromModals, setFilterValuesFromModals] = useState({
-        ft_id: "",
-        ft_id2: "",
-        catalog_business_object_id: "",
-        offeringModal_id: "",
-        userRequestingModal_id: ""
+        category_id: "",
+        service_id: "",
+        business_object_id: "",
+        user_requesting_id: "",
+        offering_id: ""
 
     });
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // Call fetchData here, which will use the updated filterValues
         fetchData();
     };
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFilterValues({ ...filterValues, [e.target.name]: e.target.value });
-        
+
     };
 
     useEffect(() => {
         fetchData();
-    }, [activeFilter, filterValuesFromModals]);
+    }, [filterValuesFromModals, expandedFiltersByLevel]);
 
     useEffect(() => {
         fetchFilters();
     }, []);
+
+
 
     const fetchFilters = async () => {
         try {
@@ -130,6 +129,7 @@ const RequestedServicesList: React.FC = () => {
 
     const generateFilterQuery = () => {
         let query = '';
+        let index = 0;
         const filterKeys: (keyof IFilterValues)[] = ['sqlf_10', 'title', 'sqlf_9', 'cf_profile_selector', 'cf_profile_description', 'sqlf_11', 'sqlf_12', 'data_catalog_category_id', 'category', 'user_requesting', 'created_on', 'status', 'cf_comments'];
 
         filterKeys.forEach(key => {
@@ -140,14 +140,25 @@ const RequestedServicesList: React.FC = () => {
         for (let [key, value] of Object.entries(filterValuesFromModals)) {
             if (value) {
 
-                if (key === "ft_id2") {
-                    key = "ft_id"
+                if (key === "category_id") {
+                    key = "data_catalog_category_id"
                 }
-                query += `&${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+                if (key === "service_id") {
+                    key = "data_catalog_category_id"
+                }
+                if (key === "business_object_id") {
+                    key = "data_catalog_category_id"
+                }
+
+                if (index > 0) {
+                    query += `&${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+
+                } else {
+                    query += `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+                    index = index + 1;
+                }
             }
         }
-
-        //query += '&language-id=2';
         return query;
     };
 
@@ -155,8 +166,22 @@ const RequestedServicesList: React.FC = () => {
         try {
             let filterQuery = '';
             let filter2Query = generateFilterQuery();
-            if (activeFilter) {
-                filterQuery = `&${encodeURIComponent(activeFilter.parentCode)}=${encodeURIComponent(activeFilter.parentValue)}&${encodeURIComponent(activeFilter.code)}=${encodeURIComponent(activeFilter.value)}`;
+            if (expandedFiltersByLevel[0]) {
+
+                filterQuery = `&${encodeURIComponent("category_grouping")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
+            }
+
+            if (expandedFiltersByLevel[1]) {
+
+                filterQuery = filterQuery + `&${encodeURIComponent("service_grouping")}=${encodeURIComponent(expandedFiltersByLevel[1])}`;
+            }
+            if (expandedFiltersByLevel[2]) {
+
+                filterQuery = filterQuery + `&${encodeURIComponent("business_object_grouping")}=${encodeURIComponent(expandedFiltersByLevel[2])}`;
+            }
+            if (expandedFiltersByLevel[3]) {
+
+                filterQuery = filterQuery + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
             }
 
             const response = await axios.get(`${API_URL_DATA}${filterQuery}${filter2Query}`);
@@ -167,56 +192,54 @@ const RequestedServicesList: React.FC = () => {
         }
     };
 
-    const toggleExpand = (filterKey: string) => {
-        setExpandedFilter(expandedFilter !== filterKey ? filterKey : null);
+    const toggleExpand = (filterKey: string, level: number) => {
+
+        setExpandedFiltersByLevel(prev => ({
+            ...prev,
+            [level]: prev[level] === filterKey ? null : filterKey
+        }));
+
     };
 
-    const handleFilterClick = (parentCode: string, parentValue: string, childCode: string, childValue: string) => {
-        setActiveFilter({ parentCode, parentValue, code: childCode, value: childValue });
-    };
-
-    const clearActiveFilter = () => {
-        setActiveFilter(null);
-    };
-
-    const renderButtonGroup = (filters: IFilter[]) => {
-        return filters.map((filter, index) => (
-            <div key={`${filter.code}-${filter.value}`}>
-                <span>
-                    <Button variant="link" onClick={() => toggleExpand(`${filter.code}-${filter.value}`)}>
-                        {expandedFilter === `${filter.code}-${filter.value}` ? '-' : '+'}
-                    </Button>
-                    {filter.value}
-                </span>
-                {renderFilterChildren(filter, filter.children)}
-            </div>
-        ));
-    };
-
-    const renderFilterChildren = (parentFilter: IFilter, children: IFilter[]) => {
-        return expandedFilter === `${parentFilter.code}-${parentFilter.value}` && (
-            <div style={{ paddingLeft: 20 }}>
-                {children.map(child => (
+    const renderButtonGroup = (filters: IFilter[], level = 0, parentKey = ''): JSX.Element[] => {
+        return filters.map((filter, index) => {
+            const filterKey = `${parentKey}${filter.code}-${filter.value}-${index}`;
+            return (
+                <div key={filterKey}>
                     <Button
-                        key={child.code} // Qui si può mantenere solo child.code se è unico tra i figli
-                        variant={activeFilter?.code === child.code && activeFilter?.value === child.value ? "primary" : "outline-secondary"}
-                        onClick={() => handleFilterClick(parentFilter.code, parentFilter.value, child.code, child.value)}
+                        variant="link"
+                        onClick={() => toggleExpand(filter.value, level)}
                     >
-                        {child.value}
+
+                        {expandedFiltersByLevel[level] === filter.value ? '-' : '+'} {filter.value}
                     </Button>
-                ))}
-            </div>
-        );
+                    {expandedFiltersByLevel[level] === filter.value && filter.children && (
+                        <div style={{ paddingLeft: '20px' }}>
+                            {renderButtonGroup(filter.children, level + 1, filterKey)}
+                        </div>
+                    )}
+                </div>
+            );
+        });
+    };
+    const representHierarchy = () => {
+        let hierarchy = Object.values(expandedFiltersByLevel).join(" >> ");
+        return hierarchy;
     };
 
 
     const renderActiveFilter = () => {
-        return activeFilter && (
+        return expandedFiltersByLevel && (
             <div>
-                <p>Active Filter: {activeFilter.value}</p>
+                <p>Active Filter: <br></br> <b>{representHierarchy()}</b></p>
+
                 <Button variant="outline-danger" onClick={clearActiveFilter}>Clear Filter</Button>
             </div>
         );
+    };
+
+    const clearActiveFilter = () => {
+        setExpandedFiltersByLevel([]);
     };
 
 
@@ -235,16 +258,19 @@ const RequestedServicesList: React.FC = () => {
         setModalStates({ ...modalStates, [modalName]: false });
     };
 
-    const handleModalDataChange = (modalName: string, value: string) => {
+    type ModalFilter = {
+        name: string;
+        id: string;
+    }
+    const handleModalDataChange = (modalName: string, value: ModalFilter) => {
         setFilterValuesFromModals({ ...filterValuesFromModals, [modalName]: value });
     };
 
-    ///////////////////////////////////////////////////////////////
     return (
         <Container fluid>
             <h2> <i className="fas fa-handshake nav-icon" style={{ paddingRight: "8px" }}> </i> <b>Requests</b></h2>
             <h5>Navigate to the Requests for your Offered Services</h5>
-            <Row style={{ paddingTop: "30px", flexWrap:"nowrap", display:"flex"}}>
+            <Row style={{ paddingTop: "30px", flexWrap: "nowrap", display: "flex" }}>
 
                 <Col md={2} style={{ display: 'flex', flexDirection: 'column' }}>
                     <Card>
@@ -261,13 +287,13 @@ const RequestedServicesList: React.FC = () => {
                             <tbody>
                                 <tr>
                                     <td>
-                                        <div className="input-group mb-3" style={{ marginTop: '35px', transform: "scale(0.8)" }}>
+                                        <div className="input-group" style={{ transform: "scale(0.8)" }}>
                                             <button onClick={() => handleOpenModal('offeringModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-search"></i>
                                                 Offering
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.offeringModal_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
-                                            <button onClick={() => cancelModalFilters('offeringModal_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
+                                            <input className="form-control" placeholder={filterValuesFromModals.offering_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <button onClick={() => cancelModalFilters('offering_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
 
                                             </button>
@@ -277,13 +303,13 @@ const RequestedServicesList: React.FC = () => {
 
                                 <tr>
                                     <td>
-                                        <div className="input-group mb-3" style={{ transform: "scale(0.8)" }}>
+                                        <div className="input-group" style={{ transform: "scale(0.8)" }}>
                                             <button onClick={() => handleOpenModal('categoriesModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-search"></i>
                                                 Categories
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.ft_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
-                                            <button onClick={() => cancelModalFilters('ft_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
+                                            <input className="form-control" placeholder={filterValuesFromModals.category_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <button onClick={() => cancelModalFilters('category_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
 
                                             </button>
@@ -292,13 +318,13 @@ const RequestedServicesList: React.FC = () => {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <div className="input-group mb-3" style={{ transform: "scale(0.8)" }}>
+                                        <div className="input-group" style={{ transform: "scale(0.8)" }}>
                                             <button onClick={() => handleOpenModal('serviceModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-search"></i>
                                                 Service
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.ft_id2} aria-label="Example text with button addon" aria-describedby="button-addon1" />
-                                            <button onClick={() => cancelModalFilters('ft_id2')} className="btn btn-outline-secondary" type="button" id="button-addon1">
+                                            <input className="form-control" placeholder={filterValuesFromModals.service_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <button onClick={() => cancelModalFilters('service_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
 
                                             </button>
@@ -307,13 +333,13 @@ const RequestedServicesList: React.FC = () => {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <div className="input-group mb-3" style={{ transform: "scale(0.8)" }}>
+                                        <div className="input-group" style={{ transform: "scale(0.8)" }}>
                                             <button onClick={() => handleOpenModal('businnesObjectModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-search"></i>
                                                 Businnes object
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.catalog_business_object_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
-                                            <button onClick={() => cancelModalFilters('catalog_business_object_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
+                                            <input className="form-control" placeholder={filterValuesFromModals.business_object_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <button onClick={() => cancelModalFilters('business_object_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -321,13 +347,13 @@ const RequestedServicesList: React.FC = () => {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <div className="input-group mb-3" style={{ transform: "scale(0.8)" }}>
-                                            <button onClick={() => handleOpenModal('businnesObjectModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
+                                        <div className="input-group" style={{ transform: "scale(0.8)" }}>
+                                            <button onClick={() => handleOpenModal('userRequestingModal')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-search"></i>
                                                 User Requesting
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.catalog_business_object_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
-                                            <button onClick={() => cancelModalFilters('catalog_business_object_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
+                                            <input className="form-control" placeholder={filterValuesFromModals.user_requesting_id} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <button onClick={() => cancelModalFilters('user_requesting_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
                                             </button>
                                         </div>

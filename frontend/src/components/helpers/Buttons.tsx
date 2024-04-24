@@ -15,8 +15,8 @@ const EditRequest = (id: string) => {
   window.location.href = `/editRequestedService?id=${id}`
 };
 
-const RequestedServices = (id: string) => {
-  window.location.href = `/requestedServices?id=${id}`
+const RequestsOnService = (id: string) => {
+  window.location.href = `/requests?id=${id}`
 };
 
 const EditSubscription = (id: string) => {
@@ -41,4 +41,4 @@ const DetailDataEntity = (id: string) => {
 
 
 
-export { EditService, EditRequest, RequestedServices, DetailService, New, EditSubscription, EditDataEntity, NewDataEntity, DetailDataEntity, NewSubscription }; 
+export { EditService, EditRequest, RequestsOnService, DetailService, New, EditSubscription, EditDataEntity, NewDataEntity, DetailDataEntity, NewSubscription }; 

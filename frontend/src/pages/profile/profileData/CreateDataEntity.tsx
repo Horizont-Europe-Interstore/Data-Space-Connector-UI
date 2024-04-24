@@ -267,7 +267,7 @@ const CreateDataEntity = () => {
           <ListGroup.Item>
             <button onClick={() => handleOpenModal('DataOfferingModal')} className="btn btn-outline-secondary" type="button" id="button-addon1" value="pippo">
               <i className="fas fa-search"></i>
-              Data Offerings: {!data?.data_catalog_data_offerings_id && "Please select one option"}{data?.data_catalog_data_offerings_id}
+              Data Offering: {!cardElements.title && "Please select one option"}{cardElements.title}
             </button>
           </ListGroup.Item>
           <ListGroup.Item><Label for="title">Title</Label>

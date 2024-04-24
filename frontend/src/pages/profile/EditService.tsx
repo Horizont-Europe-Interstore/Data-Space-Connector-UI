@@ -45,6 +45,8 @@ interface Data_catalog_data_offerings {
   modified_on: string;
   data_catalog_business_object_id: string;
   profile_description: string;
+  active_to_enable: number;
+  active_from_enable: number;
 }
 
 
@@ -60,6 +62,9 @@ const EditService = () => {
   const [isLoading1, setIsLoading1] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
   const formatDateFromData = (dateString: string): string => {
+    if (!dateString) {
+      return "";
+    }
     let formattedDate = dateString.replace(' ', 'T').slice(0, 16);
     return formattedDate;
   }
@@ -93,8 +98,8 @@ const EditService = () => {
       })
       saveRequest(true)
     }
-
   }
+
   function enableOfferedService() {
     if (data) {
       setData({
@@ -103,11 +108,7 @@ const EditService = () => {
       })
       saveRequest(false)
     }
-
   }
-
-
-
 
   async function saveRequest(isStatusChanged: boolean) {
     setIsLoading(true);
@@ -134,7 +135,6 @@ const EditService = () => {
       };
 
       try {
-
         const response = await axios.post('/dataset/my_offered_services', removeObj(requestBody));
         window.location.href = '/myOfferedServices'
       } catch (error) {
@@ -143,7 +143,6 @@ const EditService = () => {
         setIsLoading(false)
       }
     }
-
   }
 
   function handleSelect(value: string) {
@@ -153,10 +152,7 @@ const EditService = () => {
         profile_selector: value
       });
     }
-
   }
-
-
 
   const handleDateChangeCreatedOn = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
@@ -207,8 +203,6 @@ const EditService = () => {
   const handleFileSchemaSampleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     if (file && data) {
-      //setFileName(file.name);
-
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => {
@@ -291,6 +285,31 @@ const EditService = () => {
     }
     return new Blob(byteArrays, { type: mimeType });
   }
+
+
+
+  const handleActiveFromEnableChange = () => {
+    setData(prevData => {
+      if (!prevData) return null;
+      return {
+        ...prevData,
+        active_from_enable: prevData.active_from_enable === 0 ? 1 : 0
+      };
+    });
+  };
+
+  const handleActiveToEnableChange = () => {
+    setData(prevData => {
+      if (!prevData) return null;
+      return {
+        ...prevData,
+        active_to_enable: prevData.active_to_enable === 0 ? 1 : 0
+      };
+    });
+  };
+
+
+
   return (
     <Container fluid>
       <div className='row' style={{ paddingBottom: "15px" }}>
@@ -338,17 +357,12 @@ const EditService = () => {
             <Input type="text" name="title" id="title" placeholder={data?.title} disabled /></ListGroup.Item>
         </ListGroup>
       </Card>
-
-
-
       <Card >
         <h3 className="list-group-item-heading" style={{ paddingLeft: "20px", paddingTop: "20px" }}><b>Offered Services</b></h3>
         <h6 style={{ paddingLeft: " 20px" }}>Select Offered Service For This Subscription Request</h6>
         <ListGroup variant="flush">
           <ListGroup.Item><Label for="id">Businnes object</Label>
             <Input type="text" name="id" id="id" placeholder={data?.data_catalog_business_object_obj.name} disabled />
-
-
           </ListGroup.Item>
           <ListGroup.Item>
             <Row form>
@@ -393,17 +407,47 @@ const EditService = () => {
             {data && <Row form>
               <Col >
                 <FormGroup>
-                  <Label for="serviceCode">Active from </Label>
+                  <Label for="activeFrom">Active from</Label>
                   <Input type="datetime-local" name="activeFrom" id="activeFrom" value={formatDateFromData(data?.active_from)} onChange={handleDateChangeCreatedOn} />
                 </FormGroup>
               </Col>
-              <Col  >
-                <FormGroup >
-                  <Label for="serviceCode">Active to</Label>
+              <Col md={3} className="d-flex justify-content-center align-items-center">
+                <FormGroup check className="d-flex align-items-center justify-content-md-center mb-0">
+                  <Label check className="mb-0">
+                    <Input
+                      type="checkbox"
+                      checked={data.active_from_enable === 1}
+                      onChange={handleActiveFromEnableChange}
+                    />
+                    {' '}The service is valid from the date
+                  </Label>
+                </FormGroup>
+              </Col>
+
+            </Row>}
+
+
+            {data && <Row form>
+              <Col >
+                <FormGroup>
+                  <Label for="activeTo">Active to</Label>
                   <Input type="datetime-local" name="activeTo" id="activeTo" value={formatDateFromData(data?.active_to)} onChange={handleDateChangeActiveTo} />
-                </FormGroup >
+                </FormGroup>
+              </Col>
+              <Col md={3} className="d-flex justify-content-center align-items-center">
+                <FormGroup check className="d-flex align-items-center justify-content-md-center mb-0">
+                  <Label check className="mb-0">
+                    <Input
+                      type="checkbox"
+                      checked={data.active_to_enable === 1}
+                      onChange={handleActiveToEnableChange}
+                    />
+                    {' '}The service is valid until the date
+                  </Label>
+                </FormGroup>
               </Col>
             </Row>}
+
           </ListGroup.Item>
 
         </ListGroup>
