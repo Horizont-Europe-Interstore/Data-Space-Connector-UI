@@ -236,11 +236,11 @@ const ProvideData: React.FC = () => {
   const renderActiveFilter = () => {
     return representHierarchy() && (
       <div>
-        
-        <p style={{ display: 'inline' }}>Active Filters: <br></br> <b>{representHierarchy()}</b> <div style={{  display: 'inline-flex', scale: "0.6", marginLeft: '5px' }}>
+
+        <p style={{ display: 'inline' }}>Active Filters: <br></br> <b>{representHierarchy()}</b> <div style={{ display: 'inline-flex', scale: "0.6", marginLeft: '5px' }}>
           <Button variant="outline-danger" onClick={clearActiveFilter}> <i className="fas fa-trash" style={{ color: 'red' }}></i> </Button>
         </div></p>
-     
+
       </div>
     );
   };

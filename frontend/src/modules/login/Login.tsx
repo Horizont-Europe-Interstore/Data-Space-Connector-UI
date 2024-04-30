@@ -20,7 +20,7 @@ const Login = () => {
 
   const navigate = useNavigate();
   const [t] = useTranslation();
-
+  
   const login = async (email: string, password: string) => {
     try {
       setAuthLoading(true);

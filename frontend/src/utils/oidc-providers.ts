@@ -65,6 +65,7 @@ const GOOGLE_CONFIG: UserManagerSettings = {
 export const authLogin = async (email: string, password: string) => {
 
   try {
+    delete axios.defaults.headers.common["Authorization"];
     const response = await axios.post('/user/auth', {
       username: email,
       password: password
