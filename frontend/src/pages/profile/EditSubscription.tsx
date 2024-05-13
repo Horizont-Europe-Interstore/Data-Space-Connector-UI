@@ -7,6 +7,7 @@ import Form from 'react-bootstrap/Form';
 import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 interface Company {
     name: string;
     id: string;
@@ -63,7 +64,7 @@ const EditSubscription = () => {
     const id = queryParams.get('id');
     const [data, setData] = useState<Data_catalog_data_requests | null>(null);
     useEffect(() => {
-        axios.get<ApiResponse>(`/dataset/my_subscriptions/${id}`)
+        axiosWithInterceptorInstance.get<ApiResponse>(`/dataset/my_subscriptions/${id}`)
             .then(response => {
                 setData(response.data.data_catalog_data_requests_obj);
             })

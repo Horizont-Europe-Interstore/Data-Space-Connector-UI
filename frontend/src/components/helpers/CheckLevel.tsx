@@ -7,8 +7,6 @@ function checkLevel(value:string, filterArray:ExpandedFiltersByLevel, parrent:st
 
 
     const values = Object.values(filterArray);
-        console.log("value:" +value + parrent)
-        console.log("values:" + values + values.length)
         if (values.length >0 &&  !values.includes(parrent)) {
           return true;
         }

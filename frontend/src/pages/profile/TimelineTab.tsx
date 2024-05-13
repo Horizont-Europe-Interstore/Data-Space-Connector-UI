@@ -1,14 +1,12 @@
-import { PfImage } from '@profabric/react-components';
 import { format } from 'date-fns';
 import React, { useEffect, useState } from 'react';
 import { VerticalTimeline, VerticalTimelineElement } from 'react-vertical-timeline-component';
 import 'react-vertical-timeline-component/style.min.css';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { Button, Container } from 'react-bootstrap';
 import { DetailDataEntity, EditDataEntity } from '@app/components/helpers/Buttons';
-if (localStorage.getItem("token")) {
-  axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
-}
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
+
 interface ApiResponseReg {
   pid: string;
   smartContractAddress: string;
@@ -40,26 +38,24 @@ const TimelineTab = ({ isActive }: { isActive: boolean }) => {
   const [isTheLastPage, setIsTheLastPage] = useState<boolean>(false);
   const [dataURLs, setDataURLs] = useState<ApiResponseURLs>({} as ApiResponseURLs);
   const [checkResults, setCheckResults] = useState<Record<string, boolean | string>>({})
- 
+
 
   useEffect(() => {
-fetchData();
+    fetchData();
     fetchUrls();
   }, []);
   const fetchUrls = async () => {
-    axios.get<ApiResponseURLs[]>(`/custom-query/data-objects/?id=e48046c9-0b94-41d2-9ad4-206f1604b821`)
+    axiosWithInterceptorInstance.get<ApiResponseURLs[]>(`/custom-query/data-objects/?id=e48046c9-0b94-41d2-9ad4-206f1604b821`)
       .then(response => {
         setDataURLs(response.data[0]);
-
       })
       .catch(error => {
-        console.error('Error fetching media:', error);
       });
   };
 
   const fetchData = async () => {
     try {
-      const response = await axios.get<ApiResponse>(`/timeline/data/?id=d6342c52-8995-4a0d-b42d-894ffc600a3d&enabled=1&created_after=${convertToISOFormat(createdAfter)}&created_before=${convertToISOFormat(createdBefore)}&currentPage=1`);
+      const response = await axiosWithInterceptorInstance.get<ApiResponse>(`/timeline/data/?id=d6342c52-8995-4a0d-b42d-894ffc600a3d&enabled=1&created_after=${convertToISOFormat(createdAfter)}&created_before=${convertToISOFormat(createdBefore)}&currentPage=1`);
       setData(response.data.resultList);
       setIsTheLastPage(response.data.isTheLastPage);
     } catch (error) {
@@ -68,7 +64,6 @@ fetchData();
   };
 
   async function checkSmartContract(id: string) {
-
     const url = new URL(dataURLs.data_app_url)
     const requestBody = {
       "entityId": `urn:ngsi-ld:dataentity:${id}`,
@@ -76,7 +71,7 @@ fetchData();
     };
     try {
       const fullUrl = `${url.protocol}//localhost:${url.port}/data-app-consumer/registration`;
-      const response = await axios.post<ApiResponseReg>(`${window.location.protocol}//${window.location.host}/data-app-consumer/registration`, requestBody);
+      const response = await axiosWithInterceptorInstance.post<ApiResponseReg>(`${window.location.protocol}//${window.location.host}/data-app-consumer/registration`, requestBody);
       if (response.data.smartContractAddress) {
 
         setCheckResults(prevResults => ({
@@ -106,6 +101,7 @@ fetchData();
           [id]: ("NaN")
         }));
       }
+
       return error.response.data.smartContractAddress
     }
   }
@@ -114,7 +110,7 @@ fetchData();
 
     try {
       setCurrentPage(currentPage + 1);
-      const response = await axios.get<ApiResponse>(`/timeline/data/?id=d6342c52-8995-4a0d-b42d-894ffc600a3d&enabled=1&created_after=${convertToISOFormat(createdAfter)}&created_before=${convertToISOFormat(createdBefore)}&currentPage=${currentPage}`);
+      const response = await axiosWithInterceptorInstance.get<ApiResponse>(`/timeline/data/?id=d6342c52-8995-4a0d-b42d-894ffc600a3d&enabled=1&created_after=${convertToISOFormat(createdAfter)}&created_before=${convertToISOFormat(createdBefore)}&currentPage=${currentPage}`);
       setData(prevData => [...prevData, ...response.data.resultList]);
       setIsTheLastPage(response.data.isTheLastPage);
     } catch (error) {
@@ -142,7 +138,7 @@ fetchData();
     return mySubString;
   }
   const handleCreatedAfterChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
-    
+
     setcreatedAfter(e.target.value);
 
   };
@@ -170,27 +166,27 @@ fetchData();
   };
 
   useEffect(() => {
-    if (isButtonPressed === true){
+    if (isButtonPressed === true) {
       fetchData()
-      setisButtonPressed( false)
+      setisButtonPressed(false)
     }
-    
-  }, [createdBefore,createdAfter,isButtonPressed]);
 
-  
-function replaceDateString(input: string): string {
-  const isoDatePattern = /isoToClientDateTimeFormat\(([^)]+)\)/;
-  const match = input.match(isoDatePattern);
+  }, [createdBefore, createdAfter, isButtonPressed]);
 
-  if (match) {
-    const isoDateString = match[1]; 
-    const formattedDate = format(new Date(isoDateString), 'dd/MM/yyyy HH:mm'); 
-    return input.replace(isoDatePattern, formattedDate);
+
+  function replaceDateString(input: string): string {
+    const isoDatePattern = /isoToClientDateTimeFormat\(([^)]+)\)/;
+    const match = input.match(isoDatePattern);
+
+    if (match) {
+      const isoDateString = match[1];
+      const formattedDate = format(new Date(isoDateString), 'dd/MM/yyyy HH:mm');
+      return input.replace(isoDatePattern, formattedDate);
+    }
+
+    return input;
   }
 
-  return input; 
-}
-  
   return (
     <Container fluid>
       <div className='row'>
@@ -221,10 +217,10 @@ function replaceDateString(input: string): string {
               <i className="fas fa-search nav-icon" style={{ paddingRight: "4px" }}></i>
               Filter
             </Button>
-           {(createdAfter || createdBefore) && <Button type="button" className="btn btn-danger" onClick={resetDates} style={{ scale: "0.6", marginTop: "-8px", marginLeft: "-15px" }}>
+            {(createdAfter || createdBefore) && <Button type="button" className="btn btn-danger" onClick={resetDates} style={{ scale: "0.6", marginTop: "-8px", marginLeft: "-15px" }}>
               <i className="fas fa-trash nav-icon" style={{ paddingRight: "4px" }}></i>
               Reset
-            </Button>}</div> 
+            </Button>}</div>
         </div>
       </div>
       <VerticalTimeline>
@@ -244,17 +240,17 @@ function replaceDateString(input: string): string {
             {item.left_side === 0 && checkResults[mysubstring(item.nav)] && checkResults[mysubstring(item.nav)] !== "NaN" && <a href={"https://www.oklink.com/amoy/address/" + checkResults[mysubstring(item.nav)]} target="_blank" rel="noopener noreferrer">link to the smart contract</a>}
             {item.left_side === 0 && checkResults[mysubstring(item.nav)] && checkResults[mysubstring(item.nav)] === "NaN" && <b style={{ color: "red" }}>There is no smart contract available for this data</b>}
             <div className='row'>
-              
-            {item.left_side === 0 && !checkResults[mysubstring(item.nav)]&& <Button onClick={() => checkSmartContract(mysubstring(item.nav))} className="btn btn-success" style={{ scale: "0.9" }}>
-                Check for Smart Contract <i className="fa fa-plus"></i>
-              </Button>}
-                
-            {item.left_side === 0 && checkResults[mysubstring(item.nav)]&& <Button onClick={() => checkSmartContract(mysubstring(item.nav))} className="btn btn-success" style={{ scale: "0.9" }} disabled>
+
+              {item.left_side === 0 && !checkResults[mysubstring(item.nav)] && <Button onClick={() => checkSmartContract(mysubstring(item.nav))} className="btn btn-success" style={{ scale: "0.9" }}>
                 Check for Smart Contract <i className="fa fa-plus"></i>
               </Button>}
 
-              
-               <Button className="btn btn-primary" onClick={() => DetailDataEntity(mysubstring(item.nav))}>
+              {item.left_side === 0 && checkResults[mysubstring(item.nav)] && <Button onClick={() => checkSmartContract(mysubstring(item.nav))} className="btn btn-success" style={{ scale: "0.9" }} disabled>
+                Check for Smart Contract <i className="fa fa-plus"></i>
+              </Button>}
+
+
+              <Button className="btn btn-primary" onClick={() => DetailDataEntity(mysubstring(item.nav))}>
                 <i className="fas fa-search"></i> Data detail
               </Button>
             </div>
@@ -262,7 +258,7 @@ function replaceDateString(input: string): string {
         ))}
       </VerticalTimeline>
       <div className='row' style={{ alignContent: "center", justifyContent: "center", paddingTop: "290 px" }}>
-      { !isTheLastPage && <Button className="btn btn-light" onClick={() => expandWindow()} style={{ backgroundColor: "transparent", scale: "2.5", border: "none", paddingTop: "8px", color: "rgb(33, 150, 243)" }} data-toggle="tooltip" data-placement="top" title="Expand the timeline">
+        {!isTheLastPage && <Button className="btn btn-light" onClick={() => expandWindow()} style={{ backgroundColor: "transparent", scale: "2.5", border: "none", paddingTop: "8px", color: "rgb(33, 150, 243)" }} data-toggle="tooltip" data-placement="top" title="Expand the timeline">
           <i className="fas fa-angle-down"></i>
         </Button>}
       </div>

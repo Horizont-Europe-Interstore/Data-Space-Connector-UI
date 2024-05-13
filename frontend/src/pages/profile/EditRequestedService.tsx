@@ -8,6 +8,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { removeObj } from '@app/components/helpers/RemoveOBJ';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 interface DataCatalogCategory {
     code: string;
     name: string;
@@ -109,7 +110,7 @@ const DetailService = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get<ApiResponse>(`/dataset/requests_on_offered_services/${id}`);
+                const response = await axiosWithInterceptorInstance.get<ApiResponse>(`/dataset/requests_on_offered_services/${id}`);
                 setData(response.data.data_catalog_data_requests_obj);
             } catch (error) {
                 console.error('Error fetching data: ', error);
@@ -151,7 +152,7 @@ const DetailService = () => {
 
 
         try {
-            const response = await axios.post('/dataset/requests_on_offered_services', removeObj(body));
+            const response = await axiosWithInterceptorInstance.post('/dataset/requests_on_offered_services', removeObj(body));
             window.location.href = '/requests'
         } catch (error) {
             console.error('Error saving data: ', error);

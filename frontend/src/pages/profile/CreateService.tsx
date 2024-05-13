@@ -4,10 +4,9 @@ import ListGroup from 'react-bootstrap/ListGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import axios from 'axios';
 import BusinnesObject from '../modals/BusinnesObject_CreateService';
 import { toast } from 'react-toastify';
-import { DateTime } from 'luxon';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 interface User_1_1 {
   id: string;
   email: string;
@@ -121,7 +120,6 @@ interface ApiResponse {
 }
 
 const CreateService = () => {
-
   const formatDateFromData = (dateString: string): string => {
     let formattedDate = dateString.replace(' ', 'T').slice(0, 16);
     return formattedDate;
@@ -256,7 +254,7 @@ const CreateService = () => {
       data_catalog_data_offerings: data
     };
     try {
-      const response = await axios.post('/dataset/my_offered_services', requestBody);
+      const response = await axiosWithInterceptorInstance.post('/dataset/my_offered_services', requestBody);
       window.location.href = '/myOfferedServices'
     } catch (error) {
       console.error('Error saving data: ', error);

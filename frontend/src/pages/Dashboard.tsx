@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { ContentHeader, SmallBox } from '@app/components';
 import Inner from '@app/components/helpers/InnerHtml';
-
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 interface DashboardData {
   id: string;
   createdOn: string;
@@ -38,14 +37,13 @@ interface InfoCard {
 }
 
 const Dashboard: React.FC = () => {
-  const iconsArray= [
-    "fas fa-cloud-download-alt ", 
+  const iconsArray = [
+    "fas fa-cloud-download-alt ",
     "fas fa-cloud-upload-alt",
     "fas fa-exchange-alt",
     "fas fa-user-plus",
     "fas fa-handshake",
     "fas fa-wifi"
-
   ]
 
   const addressArray = [
@@ -55,24 +53,19 @@ const Dashboard: React.FC = () => {
     "/mySubscriptions",
     "/requests",
     "/connectorSettings"
-    
   ]
   const [infoCards, setInfoCards] = useState<any[]>([]);
-  if (localStorage.getItem("token")) {
-    axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
-  }
-
+  
   useEffect(() => {
-    axios.get<DashboardData>('/dashboard/by-id?id=b9b1394b-425c-4c33-a132-e28c23df995a', {
-      
+    axiosWithInterceptorInstance.get<DashboardData>('/dashboard/by-id?id=b9b1394b-425c-4c33-a132-e28c23df995a', {
     })
       .then(response => {
         const dashboardAreaList = response.data.dashboardAreaList;
         const entityIds = dashboardAreaList.flatMap(area => area.dashboardItemList.map(item => item.entityId));
 
         return Promise.all(entityIds.map(entityId =>
-          axios.get(`/info-card/by-id?id=${entityId}`, {
-            
+          axiosWithInterceptorInstance.get(`/info-card/by-id?id=${entityId}`, {
+
           })
         ));
       })
@@ -80,7 +73,9 @@ const Dashboard: React.FC = () => {
         const cards = results.map(res => res.data);
         setInfoCards(cards);
       })
-      .catch(error => console.error('Errore durante il recupero dei dati', error));
+      .catch(error => {
+        console.error('Errore durante il recupero dei dati', error)
+      });
   }, []);
 
   return (
@@ -93,11 +88,11 @@ const Dashboard: React.FC = () => {
             {infoCards.map((card, index) => (
               <div key={index} className="col-lg-3 col-6">
                 <SmallBox
-                  
+
                   title={Inner(card.title)}
                   type="info"
                   count={Inner(card.cardText)}
-                  icon= {iconsArray[index]}
+                  icon={iconsArray[index]}
                   textNavigateTo={Inner(card.description)}
                   navigateTo={addressArray[index]}
 

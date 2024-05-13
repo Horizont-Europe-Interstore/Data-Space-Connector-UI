@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -12,9 +12,9 @@ import { New } from '@app/components/helpers/Buttons';
 import Inner from '@app/components/helpers/InnerHtml';
 import Pagination from '@app/components/helpers/Pagination';
 import checkLevel from '@app/components/helpers/CheckLevel';
-if (localStorage.getItem("token")) {
-  axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
-}
+import { useDispatch } from 'react-redux';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
+
 const API_URL_FILTERS = "datalist/left-grouping/my_offered_services";
 const API_URL_DATA = "/datalist/my_offered_services/page/";
 
@@ -49,6 +49,7 @@ interface ITableData {
 
 }
 const MyOfferedServices: React.FC = () => {
+  const dispatch = useDispatch();
   const [data, setData] = useState<ITableData[]>([]);
   const [filters, setFilters] = useState<IFilter[]>([]);
   type ExpandedFiltersByLevel = { [level: number]: string | null };
@@ -110,8 +111,7 @@ const MyOfferedServices: React.FC = () => {
 
   const fetchFilters = async () => {
     try {
-      const response = await axios.get<IFilter[]>(API_URL_FILTERS);
-
+      const response = await axiosWithInterceptorInstance.get<IFilter[]>(API_URL_FILTERS);
       setFilters(response.data.filter(element => element.value !== null));
     } catch (error) {
       console.error('Error fetching filters:', error);
@@ -122,7 +122,6 @@ const MyOfferedServices: React.FC = () => {
     let query = '';
     let index = 0;
     const filterKeys: (keyof IFilterValues)[] = ['category', 'title', 'created_on', 'profile_selector', 'profile_description', 'status', 'subscriptions'];
-    console.log(index)
     filterKeys.forEach(key => {
       if (filterValues[key]) {
 
@@ -165,11 +164,11 @@ const MyOfferedServices: React.FC = () => {
       if (expandedFiltersByLevel[3]) {
         filterQuery = filterQuery + `&${encodeURIComponent("users_group")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
       }
-      const response = await axios.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}&ft_status=${visibility}`);
+      const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}&ft_status=${visibility}`);
       setData(response.data.listContent);
       setTotalPages(response.data.totalPages);
       setPageSize(response.data.pageSize)
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching data:', error);
     }
   };

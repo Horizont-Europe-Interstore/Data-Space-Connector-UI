@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Modal, Container, Row, Card } from 'react-bootstrap';
 import Pagination from '@app/components/helpers/Pagination';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 interface CategorizeProps {
     show: boolean;
     handleClose: () => void;
     onModalDataChange: (modalName: string, value: modalFilter) => void;
-
 }
-
 interface ITableData {
     category_id: string;
     code: string;
@@ -41,7 +39,7 @@ const Categories: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataC
                 filter = `?${encodeURIComponent("company_name_grouping")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
             }
             try {
-                const response = await axios.get(`/datalist/cross_platform_service_categories/page/${currentPage - 1}${filter}`);
+                const response = await axiosWithInterceptorInstance.get(`/datalist/cross_platform_service_categories/page/${currentPage - 1}${filter}`);
                 setData(response.data.listContent);
                 setTotalPages(response.data.totalPages);
                 setPageSize(response.data.pageSize)
@@ -94,7 +92,7 @@ const Categories: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataC
                                 <tbody>
                                     {data.map((item, index) => (
                                         <tr key={index}>
-                                             <th scope="row">{(((currentPage - 1)) * pageSize) + index + 1}</th>
+                                            <th scope="row">{(((currentPage - 1)) * pageSize) + index + 1}</th>
                                             <td> <button className="btn btn-primary text-end" onClick={() => handleFilter(item.category_id, item.name)}>
                                                 +
                                             </button></td>
@@ -106,8 +104,8 @@ const Categories: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataC
                             </table>
                         </Row>
                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Pagination totalPages={totalPages} paginate={paginate} currentPage={currentPage} />
-            </div>
+                            <Pagination totalPages={totalPages} paginate={paginate} currentPage={currentPage} />
+                        </div>
                     </Container>
                 </Modal.Body>
             </Modal></>

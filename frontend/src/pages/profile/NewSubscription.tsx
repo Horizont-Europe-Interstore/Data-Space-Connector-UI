@@ -8,6 +8,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import Offering from '../modals/Offering_NewSubscription';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 
 ////Receiving interface
 interface Company {
@@ -126,7 +127,7 @@ const NewSubscription = () => {
 
     const handleModalDataChange = (modalName: string, value: string) => {
         setFilterValuesFromModals({ ...ValuesFromModals, [modalName]: value });
-        axios.get<ApiReceiving>(`/dataset/my_offered_services/${value}`)
+        axiosWithInterceptorInstance.get<ApiReceiving>(`/dataset/my_offered_services/${value}`)
             .then(response => {
                 setData(response.data.data_catalog_data_offerings_obj);
             })
@@ -152,7 +153,7 @@ const NewSubscription = () => {
 
 
         try {
-            const response = await axios.post('/dataset/my_subscriptions', body);
+            const response = await axiosWithInterceptorInstance.post('/dataset/my_subscriptions', body);
             window.location.href = '/mySubscriptions'
         } catch (error) {
             console.error('Error saving data: ', error);

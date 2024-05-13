@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -12,9 +12,7 @@ import { DetailDataEntity } from '@app/components/helpers/Buttons';
 import Pagination from '@app/components/helpers/Pagination';
 import { format } from 'date-fns';
 import checkLevel from '@app/components/helpers/CheckLevel';
-if (localStorage.getItem("token")) {
-  axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
-}
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 const API_URL_FILTERS = "/datalist/left-grouping/data_consumed";
 const API_URL_DATA = "/datalist/data_consumed/page/";
 interface IFilterValues {
@@ -117,7 +115,7 @@ const ConsumeData: React.FC = () => {
 
   const fetchFilters = async () => {
     try {
-      const response = await axios.get<IFilter[]>(API_URL_FILTERS);
+      const response = await axiosWithInterceptorInstance.get<IFilter[]>(API_URL_FILTERS);
       setFilters(response.data.filter(element => element.value !== null));
     } catch (error) {
       console.error('Error fetching filters:', error);
@@ -184,11 +182,11 @@ const ConsumeData: React.FC = () => {
 
         filterQuery = filterQuery + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
       }
-      const response = await axios.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}`);
+      const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}`);
 
       setData(response.data.listContent);
       setTotalPages(response.data.totalPages);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching data:', error);
     }
   };
@@ -237,11 +235,11 @@ const ConsumeData: React.FC = () => {
   const renderActiveFilter = () => {
     return representHierarchy() && (
       <div>
-        
-        <p style={{ display: 'inline' }}>Active Filters: <br></br> <b>{representHierarchy()}</b> <div style={{  display: 'inline-flex', scale: "0.6", marginLeft: '5px' }}>
+
+        <p style={{ display: 'inline' }}>Active Filters: <br></br> <b>{representHierarchy()}</b> <div style={{ display: 'inline-flex', scale: "0.6", marginLeft: '5px' }}>
           <Button variant="outline-danger" onClick={clearActiveFilter}> <i className="fas fa-trash" style={{ color: 'red' }}></i> </Button>
         </div></p>
-     
+
       </div>
     );
   };

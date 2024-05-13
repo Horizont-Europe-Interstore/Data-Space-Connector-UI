@@ -4,6 +4,7 @@ import { Modal, Container, Card } from 'react-bootstrap';
 import Pagination from '@app/components/helpers/Pagination';
 import Button from 'react-bootstrap/Button';
 import checkLevel from '@app/components/helpers/CheckLevel';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 type modalFilter = {
   name: string;
   id: string;
@@ -46,8 +47,7 @@ const UserRequesting: React.FC<CategorizeProps> = ({ show, handleClose, onModalD
 
   const fetchFilters = async () => {
     try {
-      const response = await axios.get<IFilter[]>(API_URL_FILTERS);
-
+      const response = await axiosWithInterceptorInstance.get<IFilter[]>(API_URL_FILTERS);
       setFilters(response.data.filter(element => element.value !== null));
     } catch (error) {
       console.error('Error fetching filters:', error);
@@ -61,7 +61,7 @@ const UserRequesting: React.FC<CategorizeProps> = ({ show, handleClose, onModalD
 
           filter = `?${encodeURIComponent("name")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
         }
-        const response = await axios.get(`/datalist/users/page/${currentPage - 1}${filter}`);
+        const response = await axiosWithInterceptorInstance.get(`/datalist/users/page/${currentPage - 1}${filter}`);
         setData(response.data.listContent);
         setTotalPages(response.data.totalPages);
         setPageSize(response.data.pageSize)

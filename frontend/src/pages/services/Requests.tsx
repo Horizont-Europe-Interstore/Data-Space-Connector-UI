@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -14,9 +14,8 @@ import Inner from '@app/components/helpers/InnerHtml';
 import Pagination from '@app/components/helpers/Pagination';
 import { useLocation } from 'react-router-dom';
 import checkLevel from '@app/components/helpers/CheckLevel';
-if (localStorage.getItem("token")) {
-    axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
-}
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
+
 const API_URL_FILTERS = "/datalist/left-grouping/requests_on_offered_services";
 const API_URL_DATA = "/datalist/requests_on_offered_services/page/";
 interface IFilterValues {
@@ -135,10 +134,12 @@ const Requests: React.FC = () => {
     }, []);
     const fetchFilters = async () => {
         try {
-            const response = await axios.get<IFilter[]>(API_URL_FILTERS);
+            const response = await axiosWithInterceptorInstance.get<IFilter[]>(API_URL_FILTERS);
             setFilters(response.data.filter(element => element.value !== null));
-        } catch (error) {
-            console.error('Error fetching filters:', error);
+        } catch (error: unknown) {
+            const axiosError = error as AxiosError
+           
+            console.error('Error fetching data:', error);
         }
     };
     const generateFilterQuery = () => {
@@ -198,12 +199,12 @@ const Requests: React.FC = () => {
             if (expandedFiltersByLevel[3]) {
                 filterQuery = filterQuery + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
             }
-            const response = await axios.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}`);
+            const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}`);
             setData(response.data.listContent);
             setTotalPages(response.data.totalPages);
             setPageSize(response.data.pageSize)
-        } catch (error) {
-            console.error('Error fetching data:', error);
+        } catch (error: unknown) {
+            console.error('Error fetching data:');
         }
     };
     const paginate = (pageNumber: number): void => setCurrentPage(pageNumber);
@@ -243,16 +244,16 @@ const Requests: React.FC = () => {
         let hierarchy = Object.values(expandedFiltersByLevel).join(" >> ");
         return hierarchy;
     };
-    
+
     const renderActiveFilter = () => {
         return representHierarchy() && (
-          <div>
-            <p style={{ display: 'inline' }}>Active Filters: <br></br> <b>{representHierarchy()}</b> <div style={{ display: 'inline-flex', scale: "0.6", marginLeft: '5px' }}>
-              <Button variant="outline-danger" onClick={clearActiveFilter}> <i className="fas fa-trash" style={{ color: 'red' }}></i> </Button>
-            </div></p>
-          </div>
+            <div>
+                <p style={{ display: 'inline' }}>Active Filters: <br></br> <b>{representHierarchy()}</b> <div style={{ display: 'inline-flex', scale: "0.6", marginLeft: '5px' }}>
+                    <Button variant="outline-danger" onClick={clearActiveFilter}> <i className="fas fa-trash" style={{ color: 'red' }}></i> </Button>
+                </div></p>
+            </div>
         );
-      };
+    };
 
     const clearActiveFilter = () => {
         setExpandedFiltersByLevel([]);

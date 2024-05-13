@@ -7,6 +7,7 @@ import { Await, useLocation } from 'react-router-dom';
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import axios from 'axios';
 import { removeObj } from '@app/components/helpers/RemoveOBJ';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 
 
 interface Data_catalog_category {
@@ -71,7 +72,7 @@ const EditService = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<ApiResponse>(`/dataset/my_offered_services/${id}`);
+        const response = await axiosWithInterceptorInstance.get<ApiResponse>(`/dataset/my_offered_services/${id}`);
 
         setData(response.data.data_catalog_data_offerings_obj);
 
@@ -135,7 +136,7 @@ const EditService = () => {
       };
 
       try {
-        const response = await axios.post('/dataset/my_offered_services', removeObj(requestBody));
+        const response = await axiosWithInterceptorInstance.post('/dataset/my_offered_services', removeObj(requestBody));
         window.location.href = '/myOfferedServices'
       } catch (error) {
         console.error('Error saving data: ', error);

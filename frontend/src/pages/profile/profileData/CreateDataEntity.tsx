@@ -5,10 +5,10 @@ import Form from 'react-bootstrap/Form';
 import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import axios from 'axios';
 import Service from '@app/pages/modals/Service_CreateData';
 import { RetrieveLocalApi } from '@app/components/helpers/RetrieveLocalApi';
 import { toast } from 'react-toastify';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 interface Provider {
   id: string;
   broker_url: string;
@@ -84,19 +84,15 @@ const CreateDataEntity = () => {
 
 
   useEffect(() => {
-    axios.get(`/custom-query/data-objects/?id=e48046c9-0b94-41d2-9ad4-206f1604b821`)
+    axiosWithInterceptorInstance.get(`/custom-query/data-objects/?id=e48046c9-0b94-41d2-9ad4-206f1604b821`)
       .then(response => {
         const dataConnector = response.data[0];
-
-  
-
         setData((prevData) => ({
           ...prevData,
           created_by: dataConnector?.id,
           ["sub-entities"]: {
             ...prevData["sub-entities"],
             provider: {
-
               ...prevData["sub-entities"]?.provider,
               id: dataConnector?.id,
               broker_url: dataConnector?.broker_url,
@@ -106,16 +102,12 @@ const CreateDataEntity = () => {
             },
           },
         }));
-
-
       })
       .catch(error => {
         console.error('Error fetching media:', error);
+      
       });
-
-
   }, []);
-
 
   async function saveRequest() {
     const apiRetrived= await RetrieveLocalApi()
@@ -129,10 +121,11 @@ const CreateDataEntity = () => {
       data_send: data
     };
     try {
-      const savingCall = await axios.post(`${apiRetrived}/entity?id=050bd6b5-7466-4db1-bcdf-57c835e53bbc`, requestBody);
+      const savingCall = await axiosWithInterceptorInstance.post(`${apiRetrived}/entity?id=050bd6b5-7466-4db1-bcdf-57c835e53bbc`, requestBody);
       window.location.href = '/provideData'
     } catch (error) {
       console.error('Error saving data: ', error);
+     
     } finally {
       setIsLoading(false);
     }
@@ -185,11 +178,9 @@ const CreateDataEntity = () => {
       setData({
         ...data,
         data_catalog_data_offerings_id: value,
-
       });
     }
-
-    axios.get(`/dataset/my_offered_services/${value}`)
+    axiosWithInterceptorInstance.get(`/dataset/my_offered_services/${value}`)
       .then(response => {
         setCardElements(prevState => ({
           ...prevState,
@@ -203,18 +194,14 @@ const CreateDataEntity = () => {
           categoryCode: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.code,
           categoryName: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.name
         }));
-
       })
       .catch(error => {
         console.error('Error fetching media:', error);
       });
-
   };
 
   return (
     <Container fluid>
-
-
       <div className='row' style={{ paddingBottom: "15px" }}>
         <div className='col-7'>
           <h2> <b><i className="fas fa-cloud-upload-alt nav-icon" style={{ paddingRight: "8px" }}></i>  Data Entity</b></h2>

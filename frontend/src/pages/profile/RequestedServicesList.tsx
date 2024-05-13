@@ -12,9 +12,9 @@ import Offering from '../modals/Offering';
 import { useLocation } from 'react-router-dom';
 import Inner from '@app/components/helpers/InnerHtml';
 import { Card } from 'reactstrap';
-if (localStorage.getItem("token")) {
-    axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
-}
+import AxiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
+
 
 interface IFilterValues {
     sqlf_10: string;
@@ -120,7 +120,7 @@ const RequestedServicesList: React.FC = () => {
 
     const fetchFilters = async () => {
         try {
-            const response = await axios.get<IFilter[]>(API_URL_FILTERS);
+            const response = await AxiosWithInterceptorInstance.get<IFilter[]>(API_URL_FILTERS);
             setFilters(response.data.filter(element => element.value !== null));
         } catch (error) {
             console.error('Error fetching filters:', error);
@@ -184,7 +184,7 @@ const RequestedServicesList: React.FC = () => {
                 filterQuery = filterQuery + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
             }
 
-            const response = await axios.get(`${API_URL_DATA}${filterQuery}${filter2Query}`);
+            const response = await axiosWithInterceptorInstance.get(`${API_URL_DATA}${filterQuery}${filter2Query}`);
 
             setData(response?.data);
         } catch (error) {

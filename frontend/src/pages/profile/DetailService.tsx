@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Container, Row, Col, Button, FormGroup, Label, Input } from 'reactstrap';
+import { Container, Label } from 'reactstrap';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Form from 'react-bootstrap/Form';
-import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 
 
 interface DataCatalogCategory {
@@ -56,10 +55,11 @@ const DetailService = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get<ApiResponse>(`/dataset/cross_platform_service/${id}`);
+                const response = await axiosWithInterceptorInstance.get<ApiResponse>(`/dataset/cross_platform_service/${id}`);
                 setData(response.data.data_catalog_business_object_obj);
             } catch (error) {
                 console.error('Error fetching data: ', error);
+
             }
         };
 
@@ -217,7 +217,7 @@ const DetailService = () => {
                                     <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                     Downloading...
                                 </button>}
-                                
+
                             </div>}
 
                             {!data.file_schema && <div className='col-2'>
@@ -229,7 +229,7 @@ const DetailService = () => {
                                     <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                     Downloading...
                                 </button>}
-                                
+
                             </div>}
                         </div>
                     </ListGroup.Item>
@@ -243,7 +243,7 @@ const DetailService = () => {
                                     readOnly
                                 />
                             </div>
-                           {data.file_schema_sample && <div className='col-2'>
+                            {data.file_schema_sample && <div className='col-2'>
 
 
                                 {!isLoading2 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema_sample", "file_schema_sample_filename")}>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { Modal, Container, Card, Button } from 'react-bootstrap';
 import Inner from '@app/components/helpers/InnerHtml';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import Pagination from '@app/components/helpers/Pagination';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 type modalFilter = {
     name: string;
     id: string;
@@ -49,11 +50,12 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
 
     const fetchFilters = async () => {
         try {
-            const response = await axios.get<IFilter[]>(API_URL_FILTERS);
+            const response = await axiosWithInterceptorInstance.get<IFilter[]>(API_URL_FILTERS);
 
             setFilters(response.data.filter(element => element.value !== null));
         } catch (error) {
             console.error('Error fetching filters:', error);
+           
         }
     };
     useEffect(() => {
@@ -76,7 +78,7 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
                 filter = filter + `&${encodeURIComponent("users_group")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
             }
             try {
-                const response = await axios.get(`/datalist/my_offered_services/page/${currentPage - 1}${filter}`);
+                const response = await axiosWithInterceptorInstance.get(`/datalist/my_offered_services/page/${currentPage - 1}${filter}`);
                 setData(response.data.listContent);
                 setTotalPages(response.data.totalPages);
                 setPageSize(response.data.pageSize)

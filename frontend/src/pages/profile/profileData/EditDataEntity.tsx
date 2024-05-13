@@ -1,11 +1,11 @@
-import { Container, Row, Col, Button, FormGroup, Label, Input } from 'reactstrap';
+import { Container, Label, Input } from 'reactstrap';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Form from 'react-bootstrap/Form';
-import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 
 
 interface Data_catalog_category {
@@ -63,14 +63,12 @@ const EditDataEntity = () => {
   const queryParams = new URLSearchParams(location.search);
   const id = queryParams.get('id');
   const [data, setData] = useState<Data_send | null>(null);
-  const [fileName, setFileName] = useState<string>('');
-  const [fileBase64, setFileBase64] = useState<string>('');
 
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<ApiResponse>(`/dataset/data_provided/${id}`);
+        const response = await axiosWithInterceptorInstance.get<ApiResponse>(`/dataset/data_provided/${id}`);
         setData(response.data.data_send_obj);
       } catch (error) {
         console.error('Error fetching data: ', error);
@@ -81,12 +79,10 @@ const EditDataEntity = () => {
 
   return (
     <Container fluid>
-
       <h2> <b><i className="fas fa-cloud-upload-alt nav-icon" style={{ paddingRight: "8px" }}></i>  Data Entity</b></h2>
-      <h5 style={{paddingBottom:"15px"}}> View Data</h5>
+      <h5 style={{ paddingBottom: "15px" }}> View Data</h5>
       <Card >
         <h3 className="list-group-item-heading" style={{ paddingLeft: "20px", paddingTop: "20px" }}><b>Basic information</b></h3>
-
         <ListGroup variant="flush">
           <ListGroup.Item><Label for="id">ID</Label>
             <Input type="text" name="id" id="id" value={data?.id} /></ListGroup.Item>

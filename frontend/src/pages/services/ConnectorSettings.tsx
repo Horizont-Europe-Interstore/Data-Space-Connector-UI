@@ -1,23 +1,22 @@
-import axios from 'axios';
-
+import axios, { AxiosError } from 'axios';
 import { Container, Row, Col, Button, FormGroup, Label, Input } from 'reactstrap';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Form from 'react-bootstrap/Form';
-import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 
 interface ApiResponse {
     ecc_url: string;
     id: string;
-    email:string;
-    username:string;
-    name:string;
-    broker_url:string;
-    ed_api_url:string;
-    data_app_url:string;
+    email: string;
+    username: string;
+    name: string;
+    broker_url: string;
+    ed_api_url: string;
+    data_app_url: string;
 }
 
 const ConnectorSettings = () => {
@@ -27,12 +26,12 @@ const ConnectorSettings = () => {
     const [data, setData] = useState<ApiResponse>({} as ApiResponse);
 
     useEffect(() => {
-        axios.get<ApiResponse[]>(`/custom-query/data-objects/?id=e48046c9-0b94-41d2-9ad4-206f1604b821`)
+        axiosWithInterceptorInstance.get<ApiResponse[]>(`/custom-query/data-objects/?id=e48046c9-0b94-41d2-9ad4-206f1604b821`)
             .then(response => {
                 setData(response.data[0]);
             })
             .catch(error => {
-                console.error('Error fetching media:', error);
+                console.error('Error fetching data:', error);
             });
     }, []);
 
@@ -49,9 +48,13 @@ const ConnectorSettings = () => {
 
 
         try {
-            const response = axios.post(apI);
-            toast.success('saved successfully!');
-        } catch (error) {
+            const response = axiosWithInterceptorInstance.post(apI);
+            
+            if ((await response).status === 200) {
+                toast.success('saved successfully!');
+            }
+        } catch (error:any) {
+            toast.error("Error" + error)
             console.error('Error saving data: ', error);
         }
     }
@@ -152,10 +155,10 @@ const ConnectorSettings = () => {
                                 />
                             </div>
                         </div>
-                       {/*  <Label for="id" style={{ paddingTop: " 18px" }} >Broker url</Label> */}
+                        {/*  <Label for="id" style={{ paddingTop: " 18px" }} >Broker url</Label> */}
                         <div className="row" >
 
-                          {/*   <div className="col">
+                            {/*   <div className="col">
                                 <Form.Control
                                     type="text"
                                     value={data?.broker_url}

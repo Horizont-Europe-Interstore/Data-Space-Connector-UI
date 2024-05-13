@@ -14,54 +14,6 @@ const GOOGLE_CONFIG: UserManagerSettings = {
   loadUserInfo: true,
 };
 
-//export const GoogleProvider = new UserManager(GOOGLE_CONFIG);
-
- /* const facebookLogin = () => {
-  return new Promise((res, rej) => {
-    let authResponse: any;
-    FB.login(
-      (r: any) => {
-        if (r.authResponse) {
-          authResponse = r.authResponse;
-          FB.api(
-            '/me?fields=id,name,email,picture.width(640).height(640)',
-            (profileResponse: any) => {
-              authResponse.profile = profileResponse;
-              authResponse.profile.picture = profileResponse.picture.data.url;
-              res(authResponse);
-            }
-          );
-        } else {
-          console.log('User cancelled login or did not fully authorize.');
-          rej(undefined);
-        }
-      },
-      { scope: 'public_profile,email' }
-    );
-  });
-}; */
-
- /* const getFacebookLoginStatus = () => {
-  return new Promise((res, rej) => {
-    let authResponse: any = {};
-    FB.getLoginStatus((r: any) => {
-      if (r.authResponse) {
-        authResponse = r.authResponse;
-        FB.api(
-          '/me?fields=id,name,email,picture.width(640).height(640)',
-          (profileResponse: any) => {
-            authResponse.profile = profileResponse;
-            authResponse.profile.picture = profileResponse.picture.data.url;
-            res(authResponse);
-          }
-        );
-      } else {
-        res(undefined);
-      }
-    });
-  });
-}; */
-
 export const authLogin = async (email: string, password: string) => {
 
   try {
@@ -80,19 +32,6 @@ export const authLogin = async (email: string, password: string) => {
     console.error('Login failed:', error);
     throw new Error(error.response.data.message || 'Unknown error occurred');
   }
-
-
-  /* return new Promise(async (res, rej) => {
-    await sleep(500);
-    if (email === 'admin@example.com' && password === 'admin') {
-      localStorage.setItem(
-        'authentication',
-        JSON.stringify({ profile: { email: 'admin@example.com' } })
-      );
-      return res({ profile: { email: 'admin@example.com' } });
-    }
-    return rej({ message: 'Credentials are wrong!' });
-  }); */
 };
 
 export const getAuthStatus = () => {

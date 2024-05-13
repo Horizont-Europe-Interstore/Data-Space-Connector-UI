@@ -10,6 +10,7 @@ import ActivityTab from './ActivityTab';
 import TimelineTab from './TimelineTab';
 import SettingsTab from './SettingsTab';
 import { Card, Table } from 'react-bootstrap';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 interface PageInfo {
   username: string;
   email: string;
@@ -30,10 +31,10 @@ const Profile = () => {
 
     if (activeTab !== tab) setActiveTab(tab);
   };
-  axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
+ 
   useEffect(() => {
 
-    axios.get(`/user/current`)
+    axiosWithInterceptorInstance.get(`/user/current`)
       .then(response => {
         const data = response.data
 
@@ -63,7 +64,7 @@ const Profile = () => {
 
   const updatePassword = () => {
 
-    axios.put('/user/change-password', { username: pageInfo.username, password: newPassword, repeatPassword: newPasswordRepeat })
+    axiosWithInterceptorInstance.put('/user/change-password', { username: pageInfo.username, password: newPassword, repeatPassword: newPasswordRepeat })
       .then(response => {
         console.log('Password updated successfully:', response);
       })

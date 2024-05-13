@@ -40,6 +40,7 @@ import {
   getAuthStatus,
 } from './utils/oidc-providers';
 import axios from 'axios';
+import setGlobalHeader from './components/helpers/SetGlobalHeader';
 const App = () => {
   const windowSize = useWindowSize();
   const screenSize = useSelector((state: any) => state.ui.screenSize);
@@ -65,6 +66,10 @@ const App = () => {
 
   useEffect(() => {
     checkSession();
+    if (localStorage.getItem("token")){
+      setGlobalHeader();
+    }
+    
   }, []);
 
   useEffect(() => {

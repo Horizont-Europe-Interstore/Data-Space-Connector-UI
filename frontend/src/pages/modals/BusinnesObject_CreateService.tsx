@@ -4,6 +4,7 @@ import { Button, Card, Container, Row } from 'react-bootstrap';
 import Modal from 'react-bootstrap/Modal';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import Pagination from '@app/components/helpers/Pagination';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 const API_URL_FILTERS = "datalist/left-grouping/cross_platform_service_business_objects";
 interface CategorizeProps {
     show: boolean;
@@ -31,10 +32,7 @@ interface IFilter {
     parrent: IFilter;
     children: IFilter[];
 }
-type modalFilter = {
-    name: string;
-    id: string;
-}
+
 const BusinnesObject: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChange }) => {
     const [data, setData] = useState<ITableData[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -49,8 +47,7 @@ const BusinnesObject: React.FC<CategorizeProps> = ({ show, handleClose, onModalD
 
     const fetchFilters = async () => {
         try {
-            const response = await axios.get<IFilter[]>(API_URL_FILTERS);
-
+            const response = await axiosWithInterceptorInstance.get<IFilter[]>(API_URL_FILTERS);
             setFilters(response.data.filter(element => element.value !== null));
         } catch (error) {
             console.error('Error fetching filters:', error);
@@ -61,22 +58,18 @@ const BusinnesObject: React.FC<CategorizeProps> = ({ show, handleClose, onModalD
             try {
                 let filter = "";
                 if (expandedFiltersByLevel[0]) {
-
                     filter = `?${encodeURIComponent("category_grouping")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
                 }
                 if (expandedFiltersByLevel[1]) {
-
                     filter = filter + `&${encodeURIComponent("service_grouping")}=${encodeURIComponent(expandedFiltersByLevel[1])}`;
                 }
                 if (expandedFiltersByLevel[2]) {
-
                     filter = filter + `&${encodeURIComponent("business_object_grouping")}=${encodeURIComponent(expandedFiltersByLevel[2])}`;
                 }
                 if (expandedFiltersByLevel[3]) {
-
                     filter = filter + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
                 }
-                const response = await axios.get(`datalist/cross_platform_service_business_objects/page/${currentPage - 1}${filter}`);
+                const response = await axiosWithInterceptorInstance.get(`datalist/cross_platform_service_business_objects/page/${currentPage - 1}${filter}`);
                 setData(response.data.listContent);
                 setTotalPages(response.data.totalPages);
                 setPageSize(response.data.pageSize)
@@ -90,7 +83,6 @@ const BusinnesObject: React.FC<CategorizeProps> = ({ show, handleClose, onModalD
     const paginate = (pageNumber: number): void => setCurrentPage(pageNumber);
     const handleFilter = (filter: ITableData) => {
         const firstItem = data[0];
-        console.log("name:" + filter.name)
         onModalDataChange('catalog_business_object_id', [filter.business_object_id, filter.name, filter.service_code, filter.service_name, filter.category_code, filter.category_name]);
 
         handleClose();

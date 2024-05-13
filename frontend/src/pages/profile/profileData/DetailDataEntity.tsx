@@ -1,11 +1,12 @@
-import { Container, Row, Col, Button, FormGroup, Label, Input } from 'reactstrap';
+import { Container, Label, Input } from 'reactstrap';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Form from 'react-bootstrap/Form';
 import { useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { RetrieveLocalApi } from '@app/components/helpers/RetrieveLocalApi';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 
 interface Data_catalog_category {
     code: string;
@@ -51,6 +52,10 @@ interface Data_catalog_data_offerings {
     user_offering: User_offering;
     data_catalog_data_requests_obj: Data_catalog_data_requests;
     file_schema: string;
+    user_offering_obj:User_offering_obj
+}
+interface User_offering_obj {
+    ecc_url: string;
 }
 
 
@@ -81,7 +86,7 @@ const EditDataEntity = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get<ApiResponse>(`/dataset/data_consumed/${id}`);
+                const response = await axiosWithInterceptorInstance.get<ApiResponse>(`/dataset/data_consumed/${id}`);
 
                 setData(response.data.data_send_obj);
             } catch (error) {
@@ -103,15 +108,16 @@ const EditDataEntity = () => {
             let apiAdd2: string = "";
             let apiAdd3: string = "";
             if (data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.ecc_url && data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.broker_url && data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.data_app_url) {
-                
-                apiAdd = data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.ecc_url
+
+                apiAdd = data?.data_catalog_data_offerings_obj.user_offering_obj.ecc_url
                 apiAdd2 = data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.broker_url
                 apiAdd3 = data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.data_app_url
-                
+                console.log(apiAdd + apiAdd2 + apiAdd3 + "ooooooooo")
+
             }
             const apiRetrived = await RetrieveLocalApi()
-            
-            const response = await axios.get<ApiResponse2>(`${apiRetrived}/entity?id=${data?.id}&provider_ecc=${btoa(apiAdd)}&consumer_fiware=${btoa(apiAdd2)}&consumer_data_app=${btoa(apiAdd3)}`,
+
+            const response = await axiosWithInterceptorInstance.get<ApiResponse2>(`${apiRetrived}/entity?id=${data?.id}&provider_ecc=${btoa(apiAdd)}&consumer_fiware=${btoa(apiAdd2)}&consumer_data_app=${btoa(apiAdd3)}`,
                 {
                     data: {},
 
@@ -120,7 +126,7 @@ const EditDataEntity = () => {
                     }
                 });
             if (data) {
-                
+
                 const fileData: string = response.data.filedata;
                 const base64Response: string = fileData.split(';base64,').pop()!;
                 const blob: Blob = base64ToBlob(base64Response, 'text/plain');

@@ -7,6 +7,7 @@ import styled from 'styled-components';
 import { PfDropdown, PfImage } from '@profabric/react-components';
 import { setAuthentication } from '@app/store/reducers/auth';
 import axios from 'axios';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 const StyledSmallUserImage = styled(PfImage)`
   margin-top: 3px;
   --pf-box-shadow: 0 3px 6px #00000029, 0 3px 6px #0000003b !important;
@@ -122,7 +123,6 @@ const UserDropdown = () => {
       });
     } else {
       dispatch(setAuthentication(undefined));
-      axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
       axios.post("/user/logout",
         { 'jwt': localStorage.getItem("token") }
       )
@@ -134,9 +134,13 @@ const UserDropdown = () => {
         });
       localStorage.removeItem('token');
       localStorage.removeItem('email');
+      console.log("Removing header")
+      delete axiosWithInterceptorInstance.defaults.headers.common["Authorization"];
+      localStorage.removeItem('authentication');
+
       navigate('/login');
     }
-    localStorage.removeItem('authentication');
+
   };
 
   const navigateToProfile = (event: any) => {
@@ -167,8 +171,8 @@ const UserDropdown = () => {
             rounded
           />
           <p>
-            {localStorage.getItem("email")} 
-            
+            {localStorage.getItem("email")}
+
           </p>
         </UserHeader>
         {/* <UserBody>

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Modal, Container, Card, Button } from 'react-bootstrap';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import Pagination from '@app/components/helpers/Pagination';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 interface CategorizeProps {
     show: boolean;
     handleClose: () => void;
@@ -43,8 +44,7 @@ const BusinnesObject: React.FC<CategorizeProps> = ({ show, handleClose, onModalD
 
     const fetchFilters = async () => {
         try {
-            const response = await axios.get<IFilter[]>(API_URL_FILTERS);
-
+            const response = await axiosWithInterceptorInstance.get<IFilter[]>(API_URL_FILTERS);
             setFilters(response.data.filter(element => element.value !== null));
         } catch (error) {
             console.error('Error fetching filters:', error);
@@ -70,7 +70,7 @@ const BusinnesObject: React.FC<CategorizeProps> = ({ show, handleClose, onModalD
 
                     filter = filter + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
                 }
-                const response = await axios.get(`datalist/cross_platform_service_business_objects/page/${currentPage - 1}${filter}`);
+                const response = await axiosWithInterceptorInstance.get(`datalist/cross_platform_service_business_objects/page/${currentPage - 1}${filter}`);
                 setData(response.data.listContent);
                 setTotalPages(response.data.totalPages);
                 setPageSize(response.data.pageSize)
@@ -80,7 +80,7 @@ const BusinnesObject: React.FC<CategorizeProps> = ({ show, handleClose, onModalD
         };
 
         fetchData();
-    }, [currentPage,expandedFiltersByLevel]);
+    }, [currentPage, expandedFiltersByLevel]);
     const paginate = (pageNumber: number): void => setCurrentPage(pageNumber);
     const handleFilter = (filter: string, name: string) => {
         var modalObject = {

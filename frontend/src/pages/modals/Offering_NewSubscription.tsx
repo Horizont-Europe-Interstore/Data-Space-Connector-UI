@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Modal, Container, Row } from 'react-bootstrap';
-import moment from 'moment';
 import Inner from '@app/components/helpers/InnerHtml';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 
-// Definizione delle tipologie delle props
 interface CategorizeProps {
     show: boolean;
     handleClose: () => void;
     onModalDataChange: (modalName: string, value: string) => void;
 }
-
 interface ITableData {
     sqlf_10: string;
     cf_code_2: string;
@@ -25,11 +22,10 @@ interface ITableData {
 }
 const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChange }) => {
     const [data, setData] = useState<ITableData[]>([]);
-
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get('/list/results/page/0?id=3878c122-7fb7-40fb-97b0-bfb66c8b35ca&ft_id_2=9a7db9a7-9942-499a-a5ac-0a41a99b7b87&ft_status=active&dates_check=active&country_check=active&cluster_check=active&market_check=active&role_check=active&language-id=2');
+                const response = await axiosWithInterceptorInstance.get('/list/results/page/0?id=3878c122-7fb7-40fb-97b0-bfb66c8b35ca&ft_id_2=9a7db9a7-9942-499a-a5ac-0a41a99b7b87&ft_status=active&dates_check=active&country_check=active&cluster_check=active&market_check=active&role_check=active&language-id=2');
                 setData(response.data.listContent);
             } catch (error) {
                 console.error('Error fetching data:', error);
