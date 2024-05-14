@@ -1,4 +1,6 @@
-# Energy Dataspace Connector
+# Energy Dataspace Connector User Interface
+This project contains only the graphical user interface of the Energy Dataspace Connector.
+To install all components of the connector please refer to the [Energy Dataspace Connector repository](https://github.com/Horizont-Europe-Interstore/Data-Space-Connector).
 
 ## How to launch
 First of all you need to install all the dependencies. To do that you should move under the folder /frontend and launch ```npm install``` and then wait till the completion.
