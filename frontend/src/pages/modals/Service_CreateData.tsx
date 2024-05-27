@@ -5,8 +5,8 @@ import Inner from '@app/components/helpers/InnerHtml';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import Pagination from '@app/components/helpers/Pagination';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
+import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
 const API_URL_FILTERS = "datalist/left-grouping/my_offered_services";
-
 interface CategorizeProps {
     show: boolean;
     handleClose: () => void;
@@ -43,6 +43,54 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
     type ExpandedFiltersByLevel = { [level: number]: string | null };
     const [expandedFiltersByLevel, setExpandedFiltersByLevel] = useState<ExpandedFiltersByLevel>({});
     const [filters, setFilters] = useState<IFilter[]>([]);
+
+    const [columnToFilter, setcolumnToFilter] = useState({ name: '', value: '' });
+    const [createdOnOrdering, setCreatedOnOrdering] = useState("");
+    const [categoryOrdering, setCategoryOrdering] = useState("");
+    const [titleOrdering, setTitleOrdering] = useState("");
+
+    function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
+        switch (columnToFilter) {
+            case "createdOn": {
+                setCreatedOnOrdering(ChangingOrder(createdOnOrdering))
+                setTitleOrdering("")
+                setCategoryOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "created_on",
+                    value: createdOnOrdering
+                }));
+
+                break;
+            }
+            case "title": {
+                setTitleOrdering(ChangingOrder(titleOrdering))
+                setCreatedOnOrdering("")
+                setCategoryOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "title",
+                    value: titleOrdering
+                }));
+
+                break;
+            }
+            case "category": {
+                setCategoryOrdering(ChangingOrder(categoryOrdering))
+                setTitleOrdering("")
+                setCreatedOnOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "category",
+                    value: categoryOrdering
+                }));
+                break;
+            }
+        }
+
+    }
+
+
     useEffect(() => {
         fetchFilters();
     }, []);
@@ -60,7 +108,7 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
             let filter = "";
             if (expandedFiltersByLevel[0]) {
 
-                filter = `?${encodeURIComponent("category_group")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
+                filter = `${encodeURIComponent("category_group")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
             }
             if (expandedFiltersByLevel[1]) {
 
@@ -75,7 +123,7 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
                 filter = filter + `&${encodeURIComponent("users_group")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
             }
             try {
-                const response = await axiosWithInterceptorInstance.get(`/datalist/my_offered_services/page/${currentPage - 1}${filter}`);
+                const response = await axiosWithInterceptorInstance.get(`/datalist/my_offered_services/page/${currentPage - 1}?${filter}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
                 setData(response.data.listContent);
                 setTotalPages(response.data.totalPages);
                 setPageSize(response.data.pageSize)
@@ -85,7 +133,7 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
         };
 
         fetchData();
-    }, [currentPage, expandedFiltersByLevel]);
+    }, [currentPage, expandedFiltersByLevel, expandedFiltersByLevel, columnToFilter]);
     const paginate = (pageNumber: number): void => setCurrentPage(pageNumber);
     const handleFilter = (filter: string) => {
         onModalDataChange('ft_id2', filter);
@@ -180,16 +228,22 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
 
                                                 <th>#</th>
                                                 <th></th>
-                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category</th>
-                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title </th>
-                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Created on </th>
+                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(categoryOrdering, "category")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                                    {categoryOrdering === "desc" && <i className="fas fa-sort-up"></i>}{categoryOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!categoryOrdering && <i className="fas fa-sort"></i>}
+                                                </button></th>
+                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(titleOrdering, "title")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                                    {titleOrdering === "desc" && <i className="fas fa-sort-up"></i>}{titleOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!titleOrdering && <i className="fas fa-sort"></i>}
+                                                </button> </th>
+                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}> Created On <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(createdOnOrdering, "createdOn")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                                    {createdOnOrdering === "desc" && <i className="fas fa-sort-up"></i>}{createdOnOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!createdOnOrdering && <i className="fas fa-sort"></i>}
+                                                </button></th>
                                                 <th style={{ textAlign: "center", verticalAlign: "middle" }}>Input profile </th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {data.map((item, index) => (
                                                 <tr key={index}>
-                                                     <th scope="row">{(((currentPage - 1)) * pageSize) + index + 1}</th>
+                                                    <th scope="row">{(((currentPage - 1)) * pageSize) + index + 1}</th>
                                                     <td> <button className="btn btn-primary text-end" onClick={() => handleFilter(item.cf_id)}>
                                                         +
                                                     </button></td>

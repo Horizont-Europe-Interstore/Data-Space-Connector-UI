@@ -14,7 +14,7 @@ import Pagination from '@app/components/helpers/Pagination';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import { useDispatch } from 'react-redux';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
-
+import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
 const API_URL_FILTERS = "datalist/left-grouping/my_offered_services";
 const API_URL_DATA = "/datalist/my_offered_services/page/";
 
@@ -64,13 +64,92 @@ const MyOfferedServices: React.FC = () => {
     status: "",
     subscriptions: ""
   });
-
   const [modalStates, setModalStates] = useState({
     categoriesModal: false,
     serviceModal: false,
     BOModal: false
   });
+  const [columnToFilter, setcolumnToFilter] = useState({ name: '', value: '' });
+  const [categoryOrdering, setCategoryOrdering] = useState("");
+  const [titleOrdering, setTitleOrdering] = useState("");
+  const [createdOnOrdering, setCreatedOnOrdering] = useState("");
+  const [profileFormatOrdering, setProfileFormatOrdering] = useState("");
+  const [profileDescriptionOrdering, setProfileDescriptionOrdering] = useState("");
+  function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
+    switch (columnToFilter) {
+      case "category": {
+        setCategoryOrdering(ChangingOrder(categoryOrdering))
+        setTitleOrdering("")
+        setCreatedOnOrdering("")
+        setProfileFormatOrdering("")
+        setProfileDescriptionOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "category",
+          value: categoryOrdering
+        }));
 
+        break;
+      }
+      case "title": {
+        setTitleOrdering(ChangingOrder(titleOrdering))
+        setCategoryOrdering("")
+        setCreatedOnOrdering("")
+        setProfileFormatOrdering("")
+        setProfileDescriptionOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "title",
+          value: titleOrdering
+        }));
+
+        break;
+      }
+      case "created_on": {
+        setCreatedOnOrdering(ChangingOrder(createdOnOrdering))
+        setCategoryOrdering("")
+        setTitleOrdering("")
+        setProfileFormatOrdering("")
+        setProfileDescriptionOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "created_on",
+          value: createdOnOrdering
+        }));
+
+        break;
+      }
+      case "profile_selector": {
+        setProfileFormatOrdering(ChangingOrder(profileFormatOrdering))
+        setCategoryOrdering("")
+        setTitleOrdering("")
+        setCreatedOnOrdering("")
+        setProfileDescriptionOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "profile_selector",
+          value: profileFormatOrdering
+        }));
+
+        break;
+      }
+      case "profile_description": {
+        setProfileDescriptionOrdering(ChangingOrder(profileDescriptionOrdering))
+        setCategoryOrdering("")
+        setTitleOrdering("")
+        setCreatedOnOrdering("")
+        setProfileFormatOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "profile_description",
+          value: profileDescriptionOrdering
+        }));
+
+        break;
+      }
+
+    }
+  }
   type ModalFilter = {
     name: string;
     id: string;
@@ -164,7 +243,7 @@ const MyOfferedServices: React.FC = () => {
       if (expandedFiltersByLevel[3]) {
         filterQuery = filterQuery + `&${encodeURIComponent("users_group")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
       }
-      const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}&ft_status=${visibility}`);
+      const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}&ft_status=${visibility}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
       setData(response.data.listContent);
       setTotalPages(response.data.totalPages);
       setPageSize(response.data.pageSize)
@@ -316,7 +395,7 @@ const MyOfferedServices: React.FC = () => {
                         <i className="fas fa-search"></i>
                         Categories
                       </button>
-                      <input className="form-control" placeholder={filterValuesFromModals.category_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                      <input className="form-control" data-toggle="tooltip" data-placement="top" title={filterValuesFromModals.category_id.name} placeholder={filterValuesFromModals.category_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
                       <button onClick={() => cancelModalFilters('category_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                         <i className="fas fa-trash"></i>
 
@@ -331,7 +410,7 @@ const MyOfferedServices: React.FC = () => {
                         <i className="fas fa-search"></i>
                         Cross platform services
                       </button>
-                      <input className="form-control" placeholder={filterValuesFromModals.service_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                      <input className="form-control" data-toggle="tooltip" data-placement="top" title={filterValuesFromModals.service_id.name} placeholder={filterValuesFromModals.service_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
                       <button onClick={() => cancelModalFilters('service_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                         <i className="fas fa-trash"></i>
 
@@ -346,7 +425,7 @@ const MyOfferedServices: React.FC = () => {
                         <i className="fas fa-search"></i>
                         Businnes object
                       </button>
-                      <input className="form-control" placeholder={filterValuesFromModals.business_object_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                      <input className="form-control" data-toggle="tooltip" data-placement="top" title={filterValuesFromModals.business_object_id.name} placeholder={filterValuesFromModals.business_object_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
                       <button onClick={() => cancelModalFilters('business_object_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                         <i className="fas fa-trash"></i>
                       </button>
@@ -365,11 +444,21 @@ const MyOfferedServices: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th></th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category</th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title </th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}> Created On</th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Profile Format</th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Profile Description</th>
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(categoryOrdering, "category")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {categoryOrdering === "desc" && <i className="fas fa-sort-up"></i>}{categoryOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!categoryOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(titleOrdering, "title")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {titleOrdering === "desc" && <i className="fas fa-sort-up"></i>}{titleOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!titleOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Created On <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(createdOnOrdering, "created_on")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {createdOnOrdering === "desc" && <i className="fas fa-sort-up"></i>}{createdOnOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!createdOnOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Profile Format <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(profileFormatOrdering, "profile_selector")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {profileFormatOrdering === "desc" && <i className="fas fa-sort-up"></i>}{profileFormatOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!profileFormatOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Profile Description <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(profileDescriptionOrdering, "profile_description")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {profileDescriptionOrdering === "desc" && <i className="fas fa-sort-up"></i>}{profileDescriptionOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!profileDescriptionOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Status</th>
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Subscriptions</th>
                 </tr>

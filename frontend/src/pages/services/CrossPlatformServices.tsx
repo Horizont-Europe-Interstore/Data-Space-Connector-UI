@@ -8,6 +8,7 @@ import { DetailService } from '@app/components/helpers/Buttons';
 import Pagination from '@app/components/helpers/Pagination';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
+import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
 
 const API_URL_FILTERS = "/datalist/left-grouping/cross_platform_service";
 const API_URL_DATA = "/datalist/cross_platform_service/page/";
@@ -46,10 +47,8 @@ const CrossPlatformServices: React.FC = () => {
   const [filters, setFilters] = useState<IFilter[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-
   type ExpandedFiltersByLevel = { [level: number]: string | null };
   const [expandedFiltersByLevel, setExpandedFiltersByLevel] = useState<ExpandedFiltersByLevel>({});
-
   const [filterValues, setFilterValues] = useState<IFilterValues>({
     service: "",
     category: "",
@@ -59,6 +58,89 @@ const CrossPlatformServices: React.FC = () => {
     profile_selector: "",
     cross_platform_service_id: ""
   });
+  const [columnToFilter, setcolumnToFilter] = useState({ name: '', value: '' });
+  const [categoryOrdering, setCategoryOrdering] = useState("");
+  const [serviceOrdering, setServiceOrdering] = useState("");
+  const [BOCodeOrdering, setBOCodeOrdering] = useState("");
+  const [BONameOrdering, setBONameOrdering] = useState("");
+  const [profileSelectorOrdering, setProfileSelectorOrdering] = useState("");
+
+  function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
+    switch (columnToFilter) {
+      case "category": {
+        setCategoryOrdering(ChangingOrder(categoryOrdering))
+        setServiceOrdering("")
+        setBOCodeOrdering("")
+        setBONameOrdering("")
+        setProfileSelectorOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "category",
+          value: categoryOrdering
+        }));
+
+        break;
+      }
+      case "service": {
+        setServiceOrdering(ChangingOrder(serviceOrdering))
+        setCategoryOrdering("")
+        setBOCodeOrdering("")
+        setBONameOrdering("")
+        setProfileSelectorOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "service",
+          value: serviceOrdering
+        }));
+
+        break;
+      }
+      case "business_object_code": {
+        setBOCodeOrdering(ChangingOrder(BOCodeOrdering))
+        setCategoryOrdering("")
+        setServiceOrdering("")
+        setBONameOrdering("")
+        setProfileSelectorOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "business_object_code",
+          value: BOCodeOrdering
+        }));
+
+        break;
+      }
+      case "business_object_name": {
+        setBONameOrdering(ChangingOrder(BONameOrdering))
+        setCategoryOrdering("")
+        setServiceOrdering("")
+        setBOCodeOrdering("")
+        setProfileSelectorOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "business_object_name",
+          value: BONameOrdering
+        }));
+
+        break;
+      }
+      case "profile_selector": {
+        setProfileSelectorOrdering(ChangingOrder(profileSelectorOrdering))
+        setCategoryOrdering("")
+        setServiceOrdering("")
+        setBOCodeOrdering("")
+        setBONameOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "profile_selector",
+          value: profileSelectorOrdering
+        }));
+
+        break;
+      }
+
+    }
+  }
+
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -71,7 +153,7 @@ const CrossPlatformServices: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [expandedFiltersByLevel, currentPage]);
+  }, [expandedFiltersByLevel, currentPage,columnToFilter]);
 
   useEffect(() => {
     fetchFilters();
@@ -120,21 +202,16 @@ const CrossPlatformServices: React.FC = () => {
       if (filter2Query) {
         filterQuery2 = filter2Query;
       }
-
-
-      const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA}${currentPage - 1}?${filterQuery}${filterQuery2}`);
+      const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA}${currentPage - 1}?${filterQuery}${filterQuery2}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
       setData(response.data.listContent);
       setTotalPages(response.data.totalPages);
 
     } catch (error: unknown) {
-      
+
       console.error('Error fetching data:', error);
-  }
+    }
   };
-
   const paginate = (pageNumber: number): void => setCurrentPage(pageNumber);
-
-
 
   const fetchFilters = async () => {
     try {
@@ -195,7 +272,7 @@ const CrossPlatformServices: React.FC = () => {
       </div>
     );
   };
-  
+
   const clearActiveFilter = () => {
     setExpandedFiltersByLevel([]);
     setCurrentPage(1)
@@ -223,12 +300,22 @@ const CrossPlatformServices: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th></th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category</th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Service </th>
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(categoryOrdering, "category")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {categoryOrdering === "desc" && <i className="fas fa-sort-up"></i>}{categoryOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!categoryOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Service <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(serviceOrdering, "service")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {serviceOrdering === "desc" && <i className="fas fa-sort-up"></i>}{serviceOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!serviceOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}> Service Description</th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>BO code</th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>BO Name</th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Profile Format</th>
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>BO Code <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(BOCodeOrdering, "business_object_code")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {BOCodeOrdering === "desc" && <i className="fas fa-sort-up"></i>}{BOCodeOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!BOCodeOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>BO Name <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(BONameOrdering, "business_object_name")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {BONameOrdering === "desc" && <i className="fas fa-sort-up"></i>}{BONameOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!BONameOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Profile Format <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(profileSelectorOrdering, "profile_selector")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {profileSelectorOrdering === "desc" && <i className="fas fa-sort-up"></i>}{profileSelectorOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!profileSelectorOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>
                 </tr>
               </thead>
               <tbody>

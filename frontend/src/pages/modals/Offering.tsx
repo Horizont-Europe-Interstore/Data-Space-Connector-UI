@@ -5,6 +5,7 @@ import Inner from '@app/components/helpers/InnerHtml';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import Pagination from '@app/components/helpers/Pagination';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
+import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
 type modalFilter = {
     name: string;
     id: string;
@@ -47,7 +48,65 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
     useEffect(() => {
         fetchFilters();
     }, []);
+    const [columnToFilter, setcolumnToFilter] = useState({ name: 'cf_created_on', value: 'asc' });
+    const [createdOnOrdering, setCreatedOnOrdering] = useState("");
+    const [titleOrdering, setTitleOrdering] = useState("");
+    const [categoryOrdering, setCategoryOrdering] = useState("");
+    const [inputprofileOrdering, setInputprofileOrdering] = useState("");
+    function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
+        switch (columnToFilter) {
+            case "createdOn": {
+                setCreatedOnOrdering(ChangingOrder(createdOnOrdering))
+                setTitleOrdering("")
+                setCategoryOrdering("")
+                setInputprofileOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "created_on",
+                    value: createdOnOrdering
+                }));
 
+                break;
+            }
+            case "title": {
+                setTitleOrdering(ChangingOrder(titleOrdering))
+                setCategoryOrdering("")
+                setCreatedOnOrdering("")
+                setInputprofileOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "title",
+                    value: titleOrdering
+                }));
+
+                break;
+            }
+            case "category": {
+                setCategoryOrdering(ChangingOrder(categoryOrdering))
+                setTitleOrdering("")
+                setCreatedOnOrdering("")
+                setInputprofileOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "category",
+                    value: categoryOrdering
+                }));
+                break;
+            }
+            case "inputProfile": {
+                setInputprofileOrdering(ChangingOrder(inputprofileOrdering))
+                setCategoryOrdering("")
+                setTitleOrdering("")
+                setCreatedOnOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "profile_selector",
+                    value: inputprofileOrdering
+                }));
+                break;
+            }
+        }
+    }
     const fetchFilters = async () => {
         try {
             const response = await axiosWithInterceptorInstance.get<IFilter[]>(API_URL_FILTERS);
@@ -55,7 +114,7 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
             setFilters(response.data.filter(element => element.value !== null));
         } catch (error) {
             console.error('Error fetching filters:', error);
-           
+
         }
     };
     useEffect(() => {
@@ -63,7 +122,7 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
             let filter = "";
             if (expandedFiltersByLevel[0]) {
 
-                filter = `?${encodeURIComponent("category_group")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
+                filter = `${encodeURIComponent("category_group")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
             }
             if (expandedFiltersByLevel[1]) {
 
@@ -78,7 +137,7 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
                 filter = filter + `&${encodeURIComponent("users_group")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
             }
             try {
-                const response = await axiosWithInterceptorInstance.get(`/datalist/my_offered_services/page/${currentPage - 1}${filter}`);
+                const response = await axiosWithInterceptorInstance.get(`/datalist/my_offered_services/page/${currentPage - 1}?${filter}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
                 setData(response.data.listContent);
                 setTotalPages(response.data.totalPages);
                 setPageSize(response.data.pageSize)
@@ -86,9 +145,8 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
                 console.error('Error fetching data:', error);
             }
         };
-
         fetchData();
-    }, [currentPage, expandedFiltersByLevel]);
+    }, [currentPage, expandedFiltersByLevel, columnToFilter]);
     const paginate = (pageNumber: number): void => setCurrentPage(pageNumber);
     const handleFilter = (filter: string, name: string) => {
         var modalObject = {
@@ -168,8 +226,6 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
                 <Modal.Body>
                     <Container fluid style={{ backgroundColor: '#f4f4f4' }}>
                         <div className='row '>
-
-
                             <div className='col-md-2 mb-3'>
                                 <Card className="h-100 shadow-sm" >
                                     <h5 className="card-title" style={{ paddingTop: "10px", paddingLeft: "10px", fontSize: '0.8rem' }}> <b>Cross Platform Categorization</b></h5>
@@ -190,10 +246,18 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
 
                                                 <th>#</th>
                                                 <th></th>
-                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category</th>
-                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title </th>
-                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Created on </th>
-                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Input profile </th>
+                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(categoryOrdering, "category")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                                {categoryOrdering === "desc" && <i className="fas fa-sort-up"></i>}{categoryOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!categoryOrdering && <i className="fas fa-sort"></i>}
+                                            </button></th>
+                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(titleOrdering, "title")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                                    {titleOrdering === "desc" && <i className="fas fa-sort-up"></i>}{titleOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!titleOrdering && <i className="fas fa-sort"></i>}
+                                                </button> </th>
+                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}> Created On <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(createdOnOrdering, "createdOn")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                                    {createdOnOrdering === "desc" && <i className="fas fa-sort-up"></i>}{createdOnOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!createdOnOrdering && <i className="fas fa-sort"></i>}
+                                                </button></th>
+                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}> Input profile <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(inputprofileOrdering, "inputProfile")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                                    {inputprofileOrdering === "desc" && <i className="fas fa-sort-up"></i>}{inputprofileOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!inputprofileOrdering && <i className="fas fa-sort"></i>}
+                                                </button></th>
                                             </tr>
                                         </thead>
                                         <tbody>

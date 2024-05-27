@@ -4,6 +4,7 @@ import { Modal, Container, Row, Button, Card } from 'react-bootstrap';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import Pagination from '@app/components/helpers/Pagination';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
+import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
 type modalFilter = {
     name: string;
     id: string;
@@ -37,11 +38,56 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [pageSize, setPageSize] = useState(0);
+    const [columnToFilter, setcolumnToFilter] = useState({ name: '', value: '' });
+    const [categoryOrdering, setCategoryOrdering] = useState("");
+    const [codeOrdering, setCodeOrdering] = useState("");
+    const [NameOrdering, setNameOrdering] = useState("");
     type ExpandedFiltersByLevel = { [level: number]: string | null };
     const [expandedFiltersByLevel, setExpandedFiltersByLevel] = useState<ExpandedFiltersByLevel>({});
     useEffect(() => {
         fetchFilters();
     }, []);
+    function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
+        switch (columnToFilter) {
+            case "category_name": {
+                setCategoryOrdering(ChangingOrder(categoryOrdering))
+                setNameOrdering("")
+                setCodeOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "category_name",
+                    value: categoryOrdering
+                }));
+
+                break;
+            }
+            case "code": {
+                setCodeOrdering(ChangingOrder(codeOrdering))
+                setNameOrdering("")
+                setCategoryOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "code",
+                    value: codeOrdering
+                }));
+
+                break;
+            }
+            case "name": {
+                setNameOrdering(ChangingOrder(NameOrdering))
+                setCategoryOrdering("")
+                setCodeOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "name",
+                    value: NameOrdering
+                }));
+
+                break;
+            }
+            
+        }
+    }
 
     const fetchFilters = async () => {
         try {
@@ -58,7 +104,7 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
             let filter = "";
             if (expandedFiltersByLevel[0]) {
 
-                filter = `?${encodeURIComponent("category_group")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
+                filter = `${encodeURIComponent("category_group")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
             }
             if (expandedFiltersByLevel[1]) {
 
@@ -73,7 +119,7 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
                 filter = filter + `&${encodeURIComponent("users_group")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
             }
             try {
-                const response = await axiosWithInterceptorInstance.get(`/datalist/cross_platform_service_services/page/${currentPage - 1}${filter}`);
+                const response = await axiosWithInterceptorInstance.get(`/datalist/cross_platform_service_services/page/${currentPage - 1}?${filter}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
                 setData(response.data.listContent);
                 setTotalPages(response.data.totalPages);
                 setPageSize(response.data.pageSize)
@@ -81,9 +127,8 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
                 console.error('Error fetching data:', error);
             }
         };
-
         fetchData();
-    }, [currentPage, expandedFiltersByLevel]);
+    }, [currentPage, expandedFiltersByLevel,columnToFilter]);
     const paginate = (pageNumber: number): void => setCurrentPage(pageNumber);
     const handleFilter = (filter: string, name: string) => {
         var modalObject = {
@@ -186,9 +231,15 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
                                             <tr>
                                                 <th>#</th>
                                                 <th></th>
-                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category</th>
-                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Code</th>
-                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Name</th>
+                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(categoryOrdering, "category_name")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                                {categoryOrdering === "desc" && <i className="fas fa-sort-up"></i>}{categoryOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!categoryOrdering && <i className="fas fa-sort"></i>}
+                                            </button></th>
+                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Code <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(codeOrdering, "code")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                                {codeOrdering === "desc" && <i className="fas fa-sort-up"></i>}{codeOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!codeOrdering && <i className="fas fa-sort"></i>}
+                                            </button></th>
+                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Name <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(NameOrdering, "name")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                                {NameOrdering === "desc" && <i className="fas fa-sort-up"></i>}{NameOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!NameOrdering && <i className="fas fa-sort"></i>}
+                                            </button></th>
                                                 <th style={{ textAlign: "center", verticalAlign: "middle" }}>Short Description</th>
                                             </tr>
                                         </thead>

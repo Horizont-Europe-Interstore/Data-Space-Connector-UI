@@ -15,7 +15,7 @@ import Pagination from '@app/components/helpers/Pagination';
 import { useLocation } from 'react-router-dom';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
-
+import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
 const API_URL_FILTERS = "/datalist/left-grouping/requests_on_offered_services";
 const API_URL_DATA = "/datalist/requests_on_offered_services/page/";
 interface IFilterValues {
@@ -91,7 +91,6 @@ const Requests: React.FC = () => {
         userRequestingModal: false
 
     });
-
     type FilterValuesFromModals = {
         category_id: ModalFilter;
         service_id: ModalFilter;
@@ -99,15 +98,94 @@ const Requests: React.FC = () => {
         user_requesting_id: ModalFilter;
         offering_id: ModalFilter;
     }
-
     const [filterValuesFromModals, setFilterValuesFromModals] = useState<FilterValuesFromModals>({
         category_id: { name: "", id: "" },
         service_id: { name: "", id: "" },
         business_object_id: { name: "", id: "" },
         user_requesting_id: { name: "", id: "" },
         offering_id: { name: "", id: "" }
-
     });
+    const [columnToFilter, setcolumnToFilter] = useState({ name: '', value: '' });
+    const [categoryOrdering, setCategoryOrdering] = useState("");
+    const [titleOrdering, setTitleOrdering] = useState("");
+    const [createdOnOrdering, setCreatedOnOrdering] = useState("");
+    const [userRequestingOrdering, setUserRequestingOrdering] = useState("");
+    const [statusOrdering, setStatusOrdering] = useState("");
+    function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
+        switch (columnToFilter) {
+            case "category": {
+                setCategoryOrdering(ChangingOrder(categoryOrdering))
+                setTitleOrdering("")
+                setCreatedOnOrdering("")
+                setUserRequestingOrdering("")
+                setStatusOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "category",
+                    value: categoryOrdering
+                }));
+
+                break;
+            }
+            case "title": {
+                setTitleOrdering(ChangingOrder(titleOrdering))
+                setCategoryOrdering("")
+                setCreatedOnOrdering("")
+                setUserRequestingOrdering("")
+                setStatusOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "title",
+                    value: titleOrdering
+                }));
+
+                break;
+            }
+            case "created_on": {
+                setCreatedOnOrdering(ChangingOrder(createdOnOrdering))
+                setCategoryOrdering("")
+                setTitleOrdering("")
+                setUserRequestingOrdering("")
+                setStatusOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "created_on",
+                    value: createdOnOrdering
+                }));
+
+                break;
+            }
+            case "user_requesting": {
+                setUserRequestingOrdering(ChangingOrder(userRequestingOrdering))
+                setCategoryOrdering("")
+                setTitleOrdering("")
+                setCreatedOnOrdering("")
+                setStatusOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "user_requesting",
+                    value: userRequestingOrdering
+                }));
+
+                break;
+            }
+            case "status": {
+                setStatusOrdering(ChangingOrder(statusOrdering))
+                setCategoryOrdering("")
+                setTitleOrdering("")
+                setCreatedOnOrdering("")
+                setUserRequestingOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "status",
+                    value: statusOrdering
+                }));
+
+                break;
+            }
+
+        }
+    }
     useEffect(() => {
         if (id) {
             setFilterValuesFromModals(prevFilters => ({
@@ -138,7 +216,7 @@ const Requests: React.FC = () => {
             setFilters(response.data.filter(element => element.value !== null));
         } catch (error: unknown) {
             const axiosError = error as AxiosError
-           
+
             console.error('Error fetching data:', error);
         }
     };
@@ -199,7 +277,7 @@ const Requests: React.FC = () => {
             if (expandedFiltersByLevel[3]) {
                 filterQuery = filterQuery + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
             }
-            const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}`);
+            const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
             setData(response.data.listContent);
             setTotalPages(response.data.totalPages);
             setPageSize(response.data.pageSize)
@@ -310,7 +388,7 @@ const Requests: React.FC = () => {
                                                 <i className="fas fa-search"></i>
                                                 Services
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.offering_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <input className="form-control" data-toggle="tooltip" data-placement="top" title={filterValuesFromModals.offering_id.name} placeholder={filterValuesFromModals.offering_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
                                             <button onClick={() => cancelModalFilters('offering_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
 
@@ -326,7 +404,7 @@ const Requests: React.FC = () => {
                                                 <i className="fas fa-search"></i>
                                                 Categories
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.category_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <input className="form-control" data-toggle="tooltip" data-placement="top" title={filterValuesFromModals.category_id.name} placeholder={filterValuesFromModals.category_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
                                             <button onClick={() => cancelModalFilters('category_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
 
@@ -341,7 +419,7 @@ const Requests: React.FC = () => {
                                                 <i className="fas fa-search"></i>
                                                 Cross platform services
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.service_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <input className="form-control" data-toggle="tooltip" data-placement="top" title={filterValuesFromModals.service_id.name} placeholder={filterValuesFromModals.service_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
                                             <button onClick={() => cancelModalFilters('service_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
 
@@ -356,7 +434,7 @@ const Requests: React.FC = () => {
                                                 <i className="fas fa-search"></i>
                                                 Businnes object
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.business_object_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <input className="form-control" data-toggle="tooltip" data-placement="top" title={filterValuesFromModals.business_object_id.name} placeholder={filterValuesFromModals.business_object_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
                                             <button onClick={() => cancelModalFilters('business_object_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
                                             </button>
@@ -370,7 +448,7 @@ const Requests: React.FC = () => {
                                                 <i className="fas fa-search"></i>
                                                 User Requesting
                                             </button>
-                                            <input className="form-control" placeholder={filterValuesFromModals.user_requesting_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
+                                            <input className="form-control" data-toggle="tooltip" data-placement="top" title={filterValuesFromModals.user_requesting_id.name} placeholder={filterValuesFromModals.user_requesting_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
                                             <button onClick={() => cancelModalFilters('user_requesting_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                                                 <i className="fas fa-trash"></i>
                                             </button>
@@ -390,11 +468,21 @@ const Requests: React.FC = () => {
                                 <tr>
                                     <th>#</th>
                                     <th></th>
-                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category</th>
-                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title </th>
-                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>User requesting</th>
-                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Status</th>
-                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Created on</th>
+                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(categoryOrdering, "category")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                        {categoryOrdering === "desc" && <i className="fas fa-sort-up"></i>}{categoryOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!categoryOrdering && <i className="fas fa-sort"></i>}
+                                    </button></th>
+                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(titleOrdering, "title")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                        {titleOrdering === "desc" && <i className="fas fa-sort-up"></i>}{titleOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!titleOrdering && <i className="fas fa-sort"></i>}
+                                    </button></th>
+                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>User requesting <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(userRequestingOrdering, "user_requesting")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                        {userRequestingOrdering === "desc" && <i className="fas fa-sort-up"></i>}{userRequestingOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!userRequestingOrdering && <i className="fas fa-sort"></i>}
+                                    </button></th>
+                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Status <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(statusOrdering, "status")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                        {statusOrdering === "desc" && <i className="fas fa-sort-up"></i>}{statusOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!statusOrdering && <i className="fas fa-sort"></i>}
+                                    </button></th>
+                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Created On <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(createdOnOrdering, "created_on")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                        {createdOnOrdering === "desc" && <i className="fas fa-sort-up"></i>}{createdOnOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!createdOnOrdering && <i className="fas fa-sort"></i>}
+                                    </button></th>
                                     <th style={{ textAlign: "center", verticalAlign: "middle" }}>Comments</th>
                                 </tr>
                             </thead>
@@ -440,6 +528,7 @@ const Requests: React.FC = () => {
                                             </Button>
                                         </td>
                                         <td>{Inner(item.category)}</td>
+
                                         <td>{item.title}</td>
                                         <td>{Inner(item.user_requesting)}</td>
                                         <td>{item.status}</td>

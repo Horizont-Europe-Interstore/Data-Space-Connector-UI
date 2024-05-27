@@ -5,6 +5,7 @@ import Pagination from '@app/components/helpers/Pagination';
 import Button from 'react-bootstrap/Button';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
+import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
 type modalFilter = {
   name: string;
   id: string;
@@ -41,10 +42,39 @@ const UserRequesting: React.FC<CategorizeProps> = ({ show, handleClose, onModalD
   const [totalPages, setTotalPages] = useState(0);
   const [pageSize, setPageSize] = useState(0);
   const [filters, setFilters] = useState<IFilter[]>([]);
+  const [columnToFilter, setcolumnToFilter] = useState({ name: 'username', value: 'desc' });
+  const [usernameOrdering, setUsernameOrdering] = useState("asc");
+  const [companyOrdering, setCompanyOrdering] = useState("");
   useEffect(() => {
     fetchFilters();
   }, []);
 
+  function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
+    switch (columnToFilter) {
+      case "username": {
+        setUsernameOrdering(ChangingOrder(usernameOrdering))
+        setCompanyOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "username",
+          value: usernameOrdering
+        }));
+
+        break;
+      }
+      case "company": {
+        setCompanyOrdering(ChangingOrder(companyOrdering))
+        setUsernameOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "cf_name",
+          value: companyOrdering
+        }));
+
+        break;
+      }
+    }
+  }
   const fetchFilters = async () => {
     try {
       const response = await axiosWithInterceptorInstance.get<IFilter[]>(API_URL_FILTERS);
@@ -59,9 +89,9 @@ const UserRequesting: React.FC<CategorizeProps> = ({ show, handleClose, onModalD
         let filter = "";
         if (expandedFiltersByLevel[0]) {
 
-          filter = `?${encodeURIComponent("name")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
+          filter = `${encodeURIComponent("name")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
         }
-        const response = await axiosWithInterceptorInstance.get(`/datalist/users/page/${currentPage - 1}${filter}`);
+        const response = await axiosWithInterceptorInstance.get(`/datalist/users/page/${currentPage - 1}?${filter}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
         setData(response.data.listContent);
         setTotalPages(response.data.totalPages);
         setPageSize(response.data.pageSize)
@@ -71,8 +101,7 @@ const UserRequesting: React.FC<CategorizeProps> = ({ show, handleClose, onModalD
     };
 
     fetchData();
-  }, [currentPage, expandedFiltersByLevel]);
-
+  }, [currentPage, expandedFiltersByLevel,columnToFilter]);
 
   const paginate = (pageNumber: number): void => setCurrentPage(pageNumber);
   const handleFilter = (filter: string, name: string) => {
@@ -174,8 +203,12 @@ const UserRequesting: React.FC<CategorizeProps> = ({ show, handleClose, onModalD
                       <th>#</th>
                       <th></th>
                       <th style={{ textAlign: "center", verticalAlign: "middle" }}>Email</th>
-                      <th style={{ textAlign: "center", verticalAlign: "middle" }}>Username </th>
-                      <th style={{ textAlign: "center", verticalAlign: "middle" }}>Company</th>
+                      <th style={{ textAlign: "center", verticalAlign: "middle" }}>Username <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(usernameOrdering, "username")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                        {usernameOrdering === "desc" && <i className="fas fa-sort-up"></i>}{usernameOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!usernameOrdering && <i className="fas fa-sort"></i>}
+                      </button></th>
+                      <th style={{ textAlign: "center", verticalAlign: "middle" }}>Company <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(companyOrdering, "company")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                        {companyOrdering === "desc" && <i className="fas fa-sort-up"></i>}{companyOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!companyOrdering && <i className="fas fa-sort"></i>}
+                      </button></th>
                     </tr>
                   </thead>
                   <tbody>
