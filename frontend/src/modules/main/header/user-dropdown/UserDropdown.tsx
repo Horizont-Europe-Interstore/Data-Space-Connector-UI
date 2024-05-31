@@ -123,7 +123,7 @@ const UserDropdown = () => {
       });
     } else {
       dispatch(setAuthentication(undefined));
-      axios.post("/user/logout",
+      axiosWithInterceptorInstance.post("/user/logout",
         { 'jwt': localStorage.getItem("token") }
       )
         .then(response => {
@@ -134,10 +134,8 @@ const UserDropdown = () => {
         });
       localStorage.removeItem('token');
       localStorage.removeItem('email');
-      console.log("Removing header")
       delete axiosWithInterceptorInstance.defaults.headers.common["Authorization"];
       localStorage.removeItem('authentication');
-
       navigate('/login');
     }
 

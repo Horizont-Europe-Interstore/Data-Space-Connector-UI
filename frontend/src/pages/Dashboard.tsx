@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ContentHeader, SmallBox } from '@app/components';
 import Inner from '@app/components/helpers/InnerHtml';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
+import packageJSON from  '../../package.json'; 
 interface DashboardData {
   id: string;
   createdOn: string;
@@ -60,6 +61,7 @@ const Dashboard: React.FC = () => {
     axiosWithInterceptorInstance.get<DashboardData>('/dashboard/by-id?id=b9b1394b-425c-4c33-a132-e28c23df995a', {
     })
       .then(response => {
+        console.log("version" + packageJSON.version)
         const dashboardAreaList = response.data.dashboardAreaList;
         const entityIds = dashboardAreaList.flatMap(area => area.dashboardItemList.map(item => item.entityId));
 
@@ -69,6 +71,7 @@ const Dashboard: React.FC = () => {
           })
         ));
       })
+      
       .then(results => {
         const cards = results.map(res => res.data);
         setInfoCards(cards);

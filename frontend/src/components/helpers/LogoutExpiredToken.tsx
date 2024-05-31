@@ -6,7 +6,6 @@ import axiosWithInterceptorInstance from "./AxiosConfig";
 
 const unsetGlobalHeader = () => {
     if (localStorage.getItem("token") == null) {
-      console.log("Removing header")
       delete axiosWithInterceptorInstance.defaults.headers.common["Authorization"];
     }
   }

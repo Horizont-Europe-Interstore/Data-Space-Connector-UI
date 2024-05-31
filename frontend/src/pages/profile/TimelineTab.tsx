@@ -70,8 +70,7 @@ const TimelineTab = ({ isActive }: { isActive: boolean }) => {
       "eccUrl": `${dataURLs.ecc_url}`
     };
     try {
-      const fullUrl = `${url.protocol}//localhost:${url.port}/data-app-consumer/registration`;
-      const response = await axiosWithInterceptorInstance.post<ApiResponseReg>(`${window.location.protocol}//${window.location.host}/data-app-consumer/registration`, requestBody);
+      const response = await axios.post<ApiResponseReg>(`${window.location.protocol}//${window.location.host}/data-app-consumer/registration`, requestBody); // please leave this axios call
       if (response.data.smartContractAddress) {
 
         setCheckResults(prevResults => ({
