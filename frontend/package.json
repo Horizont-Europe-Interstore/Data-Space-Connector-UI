@@ -1,6 +1,6 @@
 {
   "name": "adminlte-3-react",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "type": "module",
   "scripts": {
@@ -42,6 +42,7 @@
     "@testing-library/user-event": "14.4.3",
     "@types/react-bootstrap": "^0.32.35",
     "@vitejs/plugin-react": "4.2.1",
+    "adminlte-3-react": "file:",
     "axios": "^1.6.7",
     "bootstrap": "^4.6.0",
     "cypress": "^13.6.6",

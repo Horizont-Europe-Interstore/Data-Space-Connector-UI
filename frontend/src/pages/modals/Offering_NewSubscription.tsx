@@ -155,7 +155,7 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
     useEffect(() => {
 
         fetchData();
-    }, [ columnToFilter]);
+    }, [ columnToFilter,expandedFiltersByLevel]);
 
 
     const handleFilter = (filter: string) => {

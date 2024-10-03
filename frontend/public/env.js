@@ -2,5 +2,5 @@
     window["env"] = window["env"] || {};
   
     // Environment variables
-    window["env"]["apiUrl"] = "https://onenet-ngsi-ld.eurodyn.com/api";
+    window["env"]["apiUrl"] = "https://smart-energy.eng.it/api";
   })(this);
