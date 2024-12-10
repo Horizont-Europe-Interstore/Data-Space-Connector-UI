@@ -27,6 +27,7 @@ interface ResultList {
   description: string;
   title: string
   nav: string;
+  serviceType:string;
 }
 
 const TimelineTab = ({ isActive }: { isActive: boolean }) => {
@@ -235,9 +236,10 @@ const TimelineTab = ({ isActive }: { isActive: boolean }) => {
           >
             <h3 className="vertical-timeline-element-title"><b>{item.title}</b></h3>
             <p dangerouslySetInnerHTML={{ __html: replaceDateString(item.description) }}></p>
-
+            <b>TYPE</b> : {item.serviceType}
             {item.left_side === 0 && checkResults[mysubstring(item.nav)] && checkResults[mysubstring(item.nav)] !== "NaN" && <a href={"https://www.oklink.com/amoy/address/" + checkResults[mysubstring(item.nav)]} target="_blank" rel="noopener noreferrer">link to the smart contract</a>}
             {item.left_side === 0 && checkResults[mysubstring(item.nav)] && checkResults[mysubstring(item.nav)] === "NaN" && <b style={{ color: "red" }}>There is no smart contract available for this data</b>}
+            
             <div className='row'>
 
               {item.left_side === 0 && !checkResults[mysubstring(item.nav)] && <Button onClick={() => checkSmartContract(mysubstring(item.nav))} className="btn btn-success" style={{ scale: "0.9" }}>

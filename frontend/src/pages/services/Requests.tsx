@@ -3,7 +3,7 @@ import axios, { AxiosError } from 'axios';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Row, Col, Form, Card } from 'react-bootstrap';
+import { Container, Row, Col, Form, Card, Dropdown } from 'react-bootstrap';
 import Categories from '../modals/Categories';
 import Service from '../modals/Service';
 import BusinnesObject from '../modals/BusinnesObject';
@@ -32,6 +32,7 @@ interface IFilterValues {
     user_requesting: string;
     status: string;
     cf_comments: string;
+    
 }
 interface IFilter {
     id: string | null;
@@ -56,6 +57,7 @@ interface ITableData {
     status: string;
     cf_comments: string;
     request_id: string;
+    cf_type: string;
 }
 const Requests: React.FC = () => {
     const location = useLocation();
@@ -81,7 +83,8 @@ const Requests: React.FC = () => {
         user_requesting: "",
         created_on: "",
         status: "",
-        cf_comments: ""
+        cf_comments: "",
+       
     });
     const [modalStates, setModalStates] = useState({
         categoriesModal: false,
@@ -111,6 +114,7 @@ const Requests: React.FC = () => {
     const [createdOnOrdering, setCreatedOnOrdering] = useState("");
     const [userRequestingOrdering, setUserRequestingOrdering] = useState("");
     const [statusOrdering, setStatusOrdering] = useState("");
+    const [isPushEnabled, setIsPushEnabled] = useState((window as any)["env"]["isPushEnabled"] ? "" : "data");
     function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
         switch (columnToFilter) {
             case "category": {
@@ -205,11 +209,11 @@ const Requests: React.FC = () => {
 
     useEffect(() => {
         fetchData();
-    }, [filterValuesFromModals, currentPage, expandedFiltersByLevel]);
+    }, [filterValuesFromModals, currentPage, expandedFiltersByLevel, isPushEnabled]);
 
     useEffect(() => {
         fetchFilters();
-    }, []);
+    }, [isPushEnabled]);
     const fetchFilters = async () => {
         try {
             const response = await axiosWithInterceptorInstance.get<IFilter[]>(API_URL_FILTERS);
@@ -220,6 +224,7 @@ const Requests: React.FC = () => {
             console.error('Error fetching data:', error);
         }
     };
+
     const generateFilterQuery = () => {
         let query = '';
         let index = 0;
@@ -260,7 +265,19 @@ const Requests: React.FC = () => {
         }
         return query;
     };
+    const changeScenario = (isPushEnabled: string) => {
 
+        setIsPushEnabled(isPushEnabled)
+
+        clearActiveFilter()
+        let modalFilters: string[] = ['category_id', 'serviceModal', 'business_object_id', 'offering_id', 'service_id', 'user_requesting_id']
+        modalFilters.forEach((mf) => {
+            cancelModalFilters(mf)
+        }
+
+        )
+
+    };
     const fetchData = async () => {
         try {
             let filterQuery = '';
@@ -277,7 +294,7 @@ const Requests: React.FC = () => {
             if (expandedFiltersByLevel[3]) {
                 filterQuery = filterQuery + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
             }
-            const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
+            const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA}${currentPage - 1}?cf_type=${isPushEnabled}&${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
             setData(response.data.listContent);
             setTotalPages(response.data.totalPages);
             setPageSize(response.data.pageSize)
@@ -339,11 +356,11 @@ const Requests: React.FC = () => {
     };
 
     const cancelModalFilters = (modalName: string) => {
-        setFilterValuesFromModals({
-            ...filterValuesFromModals,
+        setFilterValuesFromModals((prev) => ({
+            ...prev,
             [modalName]: ""
-        });
-        setCurrentPage(1)
+        }));
+        setCurrentPage(1);
     };
 
     const handleOpenModal = (modalName: string) => {
@@ -364,6 +381,7 @@ const Requests: React.FC = () => {
 
     return (
         <Container fluid>
+
             <h2> <i className="fas fa-paper-plane nav-icon" style={{ paddingRight: "8px" }}> </i> <b>Requests</b></h2>
             <h5>Navigate to the Requests for your Offered Services</h5>
             <Row style={{ paddingTop: "30px", flexWrap: "nowrap", display: "flex" }}>
@@ -484,6 +502,7 @@ const Requests: React.FC = () => {
                                         {createdOnOrdering === "desc" && <i className="fas fa-sort-up"></i>}{createdOnOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!createdOnOrdering && <i className="fas fa-sort"></i>}
                                     </button></th>
                                     <th style={{ textAlign: "center", verticalAlign: "middle" }}>Comments</th>
+                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Type</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -491,8 +510,22 @@ const Requests: React.FC = () => {
                                     <td></td>
                                     <td></td>
                                     <td></td>
-                                    <td></td>
-                                    <td></td>
+                                    <td><Form.Control /////////////////////////////
+                                        type="text"
+                                        name="title"
+                                        placeholder="Filter"
+                                        value={filterValues.title}
+                                        onChange={handleInputChange}
+                                    /></td>
+                                    <td><Form.Control
+                                        type="text"
+                                        name="user_requesting"
+                                        placeholder="Filter"
+                                        value={filterValues.user_requesting}
+                                        onChange={handleInputChange}
+                                    /></td>
+
+
                                     <td><Form.Control
                                         type="text"
                                         name="status"
@@ -516,6 +549,20 @@ const Requests: React.FC = () => {
                                         value={filterValues.cf_comments}
                                         onChange={handleInputChange}
                                     /></td>
+                                    <td>
+                                        {(window as any)["env"]["isPushEnabled"] && <Dropdown drop='down' data-bs-toggle="tooltip" data-placement="top" title="Select the status of the services you want visualize">
+                                            <Dropdown.Toggle id="dropdown-basic" >
+                                                Select type: {isPushEnabled === "" && "any"} {isPushEnabled !== "" && isPushEnabled}
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu>
+
+                                                <Dropdown.Item onClick={() => changeScenario("")}>Any</Dropdown.Item>
+                                                <Dropdown.Item >------</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => changeScenario("push")}>Push</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => changeScenario("data")}>Data</Dropdown.Item>
+                                            </Dropdown.Menu>
+                                        </Dropdown>}
+                                    </td>
 
                                 </tr>
 
@@ -534,6 +581,7 @@ const Requests: React.FC = () => {
                                         <td>{item.status}</td>
                                         <td>{item.created_on}</td>
                                         <td>{item.cf_comments}</td>
+                                        <td>{Inner(item.cf_type)}</td>
                                     </tr>
                                 ))}
                             </tbody>

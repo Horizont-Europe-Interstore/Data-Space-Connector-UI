@@ -15,16 +15,19 @@ import { format } from 'date-fns';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
-const API_URL_FILTERS = "/datalist/left-grouping/my_subscriptions";
+import { useLocation } from 'react-router-dom';
+const API_URL_FILTERS = "/datalist/left-grouping/my_subscriptions?gf_type=data";
 const API_URL_DATA = "/datalist/my_subscriptions/page/";
+const API_URL_DATA_PUSH = "/datalist/my_push_sub/page/";
+//const API_URL_DATA_PUSH = "/datalist/my_subscriptions/page/";
 
 interface IFilterValues {
     sqlf_10: string;
     cf_id: string;
     title: string;
     sqlf_9: string;
-    profile_selector: string;
-    profile_description: string;
+    cf_username: string;
+    cf_name: string;
     sqlf_11: string;
     sqlf_12: string;
     category: string;
@@ -47,8 +50,6 @@ interface ITableData {
     cf_id: string;
     title: string;
     sqlf_9: string;
-    profile_selector: string;
-    profile_description: string;
     sqlf_11: string;
     sqlf_12: string;
     category_name: string;
@@ -60,8 +61,13 @@ interface ITableData {
     totalPages: string;
     my_subscription_id: string;
     category_code: string;
+    cf_name: string;
+    cf_username: string;
 }
 const MySubscriptions: React.FC = () => {
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const type = queryParams.get('type');
     const [data, setData] = useState<ITableData[]>([]);
     const [filters, setFilters] = useState<IFilter[]>([]);
     type ExpandedFiltersByLevel = { [level: number]: string | null };
@@ -71,8 +77,8 @@ const MySubscriptions: React.FC = () => {
         cf_id: "",
         title: "",
         sqlf_9: "",
-        profile_selector: "",
-        profile_description: "",
+        cf_username: "",
+        cf_name: "",
         sqlf_11: "",
         sqlf_12: "",
         category: "",
@@ -114,16 +120,17 @@ const MySubscriptions: React.FC = () => {
     const [categoryOrdering, setCategoryOrdering] = useState("");
     const [titleOrdering, setTitleOrdering] = useState("");
     const [createdOnOrdering, setCreatedOnOrdering] = useState("");
-    const [profileFormatOrdering, setProfileFormatOrdering] = useState("");
-    const [profileDescriptionOrdering, setProfileDescriptionOrdering] = useState("");
+    const [offeringUsernameOrdering, setofferingUsernameOrdering] = useState("");
+    const [offeringCompanyNameOrdering, setofferingCompanyNameOrdering] = useState("");
+    const [isPushEnabled, setIsPushEnabled] = useState(type==="push" ? true : false);
     function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
         switch (columnToFilter) {
             case "category": {
                 setCategoryOrdering(ChangingOrder(categoryOrdering))
                 setTitleOrdering("")
                 setCreatedOnOrdering("")
-                setProfileFormatOrdering("")
-                setProfileDescriptionOrdering("")
+                setofferingUsernameOrdering("")
+                setofferingCompanyNameOrdering("")
                 setcolumnToFilter(prevState => ({
                     ...prevState,
                     name: "category_name",
@@ -136,8 +143,8 @@ const MySubscriptions: React.FC = () => {
                 setTitleOrdering(ChangingOrder(titleOrdering))
                 setCategoryOrdering("")
                 setCreatedOnOrdering("")
-                setProfileFormatOrdering("")
-                setProfileDescriptionOrdering("")
+                setofferingUsernameOrdering("")
+                setofferingCompanyNameOrdering("")
                 setcolumnToFilter(prevState => ({
                     ...prevState,
                     name: "title",
@@ -150,8 +157,8 @@ const MySubscriptions: React.FC = () => {
                 setCreatedOnOrdering(ChangingOrder(createdOnOrdering))
                 setCategoryOrdering("")
                 setTitleOrdering("")
-                setProfileFormatOrdering("")
-                setProfileDescriptionOrdering("")
+                setofferingUsernameOrdering("")
+                setofferingCompanyNameOrdering("")
                 setcolumnToFilter(prevState => ({
                     ...prevState,
                     name: "created_on",
@@ -160,30 +167,30 @@ const MySubscriptions: React.FC = () => {
 
                 break;
             }
-            case "profile_selector": {
-                setProfileFormatOrdering(ChangingOrder(profileFormatOrdering))
+            case "cf_username": {
+                setofferingUsernameOrdering(ChangingOrder(offeringUsernameOrdering))
                 setCategoryOrdering("")
                 setTitleOrdering("")
                 setCreatedOnOrdering("")
-                setProfileDescriptionOrdering("")
+                setofferingCompanyNameOrdering("")
                 setcolumnToFilter(prevState => ({
                     ...prevState,
-                    name: "profile_selector",
-                    value: profileFormatOrdering
+                    name: "cf_username",
+                    value: offeringUsernameOrdering
                 }));
 
                 break;
             }
-            case "profile_description": {
-                setProfileDescriptionOrdering(ChangingOrder(profileDescriptionOrdering))
+            case "cf_name": {
+                setofferingCompanyNameOrdering(ChangingOrder(offeringCompanyNameOrdering))
                 setCategoryOrdering("")
                 setTitleOrdering("")
                 setCreatedOnOrdering("")
-                setProfileFormatOrdering("")
+                setofferingUsernameOrdering("")
                 setcolumnToFilter(prevState => ({
                     ...prevState,
-                    name: "profile_description",
-                    value: profileDescriptionOrdering
+                    name: "cf_name",
+                    value: offeringCompanyNameOrdering
                 }));
 
                 break;
@@ -204,11 +211,11 @@ const MySubscriptions: React.FC = () => {
 
     useEffect(() => {
         fetchData();
-    }, [filterValuesFromModals, expandedFiltersByLevel, currentPage]);
+    }, [filterValuesFromModals, expandedFiltersByLevel, currentPage, isPushEnabled]);
 
     useEffect(() => {
         fetchFilters();
-    }, []);
+    }, [isPushEnabled]);
 
     const fetchFilters = async () => {
         try {
@@ -222,7 +229,7 @@ const MySubscriptions: React.FC = () => {
     const generateFilterQuery = () => {
         let query = '';
         let index = 0;
-        const filterKeys: (keyof IFilterValues)[] = ['sqlf_10', 'title', 'sqlf_9', 'profile_selector', 'profile_description', 'sqlf_11', 'sqlf_12', 'cf_id', 'category', 'created_on', 'sqlf_8', 'status', 'comments', 'user_offering'];
+        const filterKeys: (keyof IFilterValues)[] = ['sqlf_10', 'title', 'sqlf_9', 'cf_username', 'cf_name', 'sqlf_11', 'sqlf_12', 'cf_id', 'category', 'created_on', 'sqlf_8', 'status', 'comments', 'user_offering'];
 
         filterKeys.forEach(key => {
             if (filterValues[key]) {
@@ -249,6 +256,25 @@ const MySubscriptions: React.FC = () => {
         }
         return query;
     };
+    const changeScenario = (isPushEnabled: boolean) => {
+
+        setIsPushEnabled(isPushEnabled)
+
+        /* if (isPushEnabled) {
+          setIsPushEnabled(() => false)
+        } else { //is not a push scenario, we would like to enable it
+          if ((window as any)["env"]["isPushEnabled"]) { //Just a check that we can enable it
+            setIsPushEnabled(() => true)
+          }
+        } */
+        //setCurrentPage(() => 0)
+        clearActiveFilter()
+        let modalFilters: string[] = ['category_id', 'serviceModal', 'BOModal']
+        modalFilters.forEach((mf) => {
+            cancelModalFilters(mf)
+        }
+        )
+    };
 
     const fetchData = async () => {
         try {
@@ -272,9 +298,21 @@ const MySubscriptions: React.FC = () => {
                 filterQuery = filterQuery + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
             }
 
-            const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
+            /* const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
             setData(response.data.listContent);
-            setTotalPages(response.data.totalPages);
+            setTotalPages(response.data.totalPages); */
+
+            if (isPushEnabled) {
+                const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA_PUSH}${currentPage - 1}?cf_type=push&${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
+                setData(response.data.listContent);
+                setTotalPages(response.data.totalPages);
+                //setPageSize(response.data.pageSize)
+            } else {
+                const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA_PUSH}${currentPage - 1}?cf_type=data&${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
+                setData(response.data.listContent);
+                setTotalPages(response.data.totalPages);
+                //setPageSize(response.data.pageSize)
+            }
         } catch (error: unknown) {
             console.error('Error fetching data:', error);
         }
@@ -368,13 +406,24 @@ const MySubscriptions: React.FC = () => {
             <div className='row' d-flex flex-nowrap>
                 <div className='col-10'>
                     <h2> <i className="fas fa-newspaper nav-icon" style={{ paddingRight: "8px" }}> </i> <b>My Subscriptions</b></h2>
-                    <h5>Navigate to your Offered Services</h5>
+                    <h5>Navigate your subscription</h5>
                 </div>
 
                 <div className='col'>
-                    <Button onClick={() => NewSubscription()} className="btn btn-success">
-                        New Subscription   <i className="fa fa-plus"></i>
-                    </Button>
+                    {isPushEnabled && <Button onClick={() => NewSubscription("push")} className="btn btn-success" data-toggle="tooltip" data-placement="top" title=" New Subscription to a push service">
+                        New push Subscription   <i className="fa fa-plus"></i>
+                    </Button>}
+                    {!isPushEnabled && <Button onClick={() => NewSubscription("data")} className="btn btn-success" data-toggle="tooltip" data-placement="top" title="New Subscription to a data service">
+                        New data Subscription   <i className="fa fa-plus"></i>
+                    </Button>}
+
+                    {/*  {!isPushEnabled && <Button onClick={() => NewDataService()} className="btn btn-success" data-bs-toggle="tooltip" data-placement="top" title="Create a new Data service" style={{ whiteSpace: 'nowrap' }}>
+                New Data Service   <i className="fa fa-plus"></i>
+              </Button>}
+
+              {isPushEnabled && <Button onClick={() => NewPushService()} className="btn btn-success" data-bs-toggle="tooltip" data-placement="top" title="Create a new Push service" style={{ whiteSpace: 'nowrap' }}>
+                New Push Service   <i className="fa fa-plus"></i>
+              </Button>} */}
                 </div>
 
             </div>
@@ -457,9 +506,22 @@ const MySubscriptions: React.FC = () => {
                 </Col>
                 <Col >
                     <Form onSubmit={handleSubmit}>
+                        <ul className="nav nav-tabs">
+                            {!isPushEnabled && <li className="nav-item">
+                                <a className="nav-link active " href="#" onClick={() => changeScenario(false)} >Data</a>
+                            </li>}
+                            {isPushEnabled && <li className="nav-item">
+                                <a className="nav-link " href="#" onClick={() => changeScenario(false)} >Data</a>
+                            </li>}
+                            {(window as any)["env"]["isPushEnabled"] && !isPushEnabled && <li className="nav-item">
+                                <a className="nav-link " aria-current="page" href="#" onClick={() => changeScenario(true)} >Push</a>
+                            </li>}
+                            {(window as any)["env"]["isPushEnabled"] && isPushEnabled && <li className="nav-item">
+                                <a className="nav-link active" aria-current="page" href="#" onClick={() => changeScenario(true)} >Push</a>
+                            </li>}
+                        </ul>
                         <Table striped bordered hover>
                             <thead>
-
                                 <tr>
                                     <th>#</th>
                                     <th></th>
@@ -474,12 +536,12 @@ const MySubscriptions: React.FC = () => {
                                         {createdOnOrdering === "desc" && <i className="fas fa-sort-up"></i>}{createdOnOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!createdOnOrdering && <i className="fas fa-sort"></i>}
                                     </button></th>
                                     <th style={{ textAlign: "center", verticalAlign: "middle" }}>Comments</th>
-                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Profile Format <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(profileFormatOrdering, "profile_selector")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
-                    {profileFormatOrdering === "desc" && <i className="fas fa-sort-up"></i>}{profileFormatOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!profileFormatOrdering && <i className="fas fa-sort"></i>}
-                  </button></th>
-                  <th style={{textAlign: "center", verticalAlign: "middle", maxWidth: "1px", wordBreak: 'break-word' }}>Profile Description  <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(profileDescriptionOrdering, "profile_description")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
-                    {profileDescriptionOrdering === "desc" && <i className="fas fa-sort-up"></i>}{profileDescriptionOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!profileDescriptionOrdering && <i className="fas fa-sort"></i>}
-                  </button></th>
+                                    <th style={{ textAlign: "center", verticalAlign: "middle" }}>Offering Username <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(offeringUsernameOrdering, "cf_username")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                        {offeringUsernameOrdering === "desc" && <i className="fas fa-sort-up"></i>}{offeringUsernameOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!offeringUsernameOrdering && <i className="fas fa-sort"></i>}
+                                    </button></th>
+                                    <th style={{ textAlign: "center", verticalAlign: "middle", maxWidth: "1px", wordBreak: 'break-word' }}>Offering Company Name  <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(offeringCompanyNameOrdering, "cf_name")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                        {offeringCompanyNameOrdering === "desc" && <i className="fas fa-sort-up"></i>}{offeringCompanyNameOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!offeringCompanyNameOrdering && <i className="fas fa-sort"></i>}
+                                    </button></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -487,13 +549,13 @@ const MySubscriptions: React.FC = () => {
                                     <td></td>
                                     <td></td>
                                     <td></td>
-                                    <td>{/* <Form.Control
+                                    <td>{ <Form.Control
                                         type="text"
                                         name="title"
                                         placeholder="Filter"
                                         value={filterValues.title}
                                         onChange={handleInputChange}
-                                    /> */}</td>
+                                    /> }</td>
                                     <td><Form.Control
                                         type="text"
                                         name="status"
@@ -517,16 +579,16 @@ const MySubscriptions: React.FC = () => {
                                     /></td>
                                     <td><Form.Control
                                         type="text"
-                                        name="profile_selector"
+                                        name="cf_username"
                                         placeholder="Filter"
-                                        value={filterValues.profile_selector}
+                                        value={filterValues.cf_username}
                                         onChange={handleInputChange}
                                     /></td>
                                     <td><Form.Control
                                         type="text"
-                                        name="profile_description"
+                                        name="cf_name"
                                         placeholder="Filter"
-                                        value={filterValues.profile_description}
+                                        value={filterValues.cf_name}
                                         onChange={handleInputChange}
                                     /></td>
 
@@ -546,14 +608,8 @@ const MySubscriptions: React.FC = () => {
                                         <td>{item.status}</td>
                                         <td>{format(new Date(item.created_on), 'dd/MM/yyyy HH:mm')}</td>
                                         <td>{item.comments}</td>
-                                        <td>{item.profile_selector}</td>
-                                        <td style={{
-                                            maxWidth: "180px",
-                                            whiteSpace: "nowrap",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis"
-                                        }} data-toggle="tooltip" data-placement="top" title={item.profile_description}>{item.profile_description}
-                                        </td>
+                                        <td>{item.cf_username}</td>
+                                        <td>{item.cf_name}</td>
                                     </tr>
                                 ))}
                             </tbody>

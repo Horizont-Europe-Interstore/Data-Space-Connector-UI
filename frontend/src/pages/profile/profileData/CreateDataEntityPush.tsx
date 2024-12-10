@@ -5,7 +5,7 @@ import Form from 'react-bootstrap/Form';
 import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import Service from '@app/pages/modals/Service_CreateData';
+import ServicePush from '@app/pages/modals/Service_CreateDataPush';
 import { RetrieveLocalApi } from '@app/components/helpers/RetrieveLocalApi';
 import { toast } from 'react-toastify';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
@@ -24,6 +24,7 @@ interface Data_send {
   description: string;
   title: string;
   fileSize: number;
+  push_uri:string;
   message: string;
   "sub-entities": {
     provider: Provider;
@@ -34,7 +35,7 @@ interface Data_send {
 interface ApiResponse {
   data_send: Data_send;
 }
-const CreateDataEntity = () => {
+const CreateDataEntityPush = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [modalStates, setModalStates] = useState({
     DataOfferingModal: false
@@ -52,6 +53,7 @@ const CreateDataEntity = () => {
     title: "",
     fileSize: 0,
     message: "",
+    push_uri:"",
     "sub-entities": {
       provider: {
         id: "",
@@ -74,6 +76,7 @@ const CreateDataEntity = () => {
     serviceName: "",
     categoryCode: "",
     categoryName: "",
+    push_uri:"",
 
   });
   const location = useLocation();
@@ -110,20 +113,38 @@ const CreateDataEntity = () => {
   }, []);
 
   async function saveRequest() {
-    const apiRetrived= await RetrieveLocalApi()
-   
+    const settingsResponse = await RetrieveLocalApi();
+    const apiRetrived= settingsResponse.ed_api_url;
+    console.log("apiRetrived")
+    console.log(apiRetrived)
     if (!data?.title || !data?.data_catalog_data_offerings_id || !data.message) {
       toast.error('Please fill out all required fields(*).');
       return;
     }
-    setIsLoading(true); // mi serve edapiurl
+    setIsLoading(true);
+    console.log("oggetto pre modifica")
+    console.log(data);
+    data.push_uri=cardElements.push_uri;
+    console.log("oggetto post modifica")
+    console.log(data)
     const requestBody = {
       data_send: data
     };
     try {
-      console.log((apiRetrived.ed_api_url))
-      const savingCall = await axiosWithInterceptorInstance.post(`${apiRetrived.ed_api_url}/entity?id=050bd6b5-7466-4db1-bcdf-57c835e53bbc`, requestBody);
-      window.location.href = '/provideData'
+      console.log("input del caricamento dati ")
+      console.log(requestBody); // qui devo aggiungere il push_uri alla richiesta 
+      const responseRequest = await axiosWithInterceptorInstance.post(`${apiRetrived}/entity?id=050bd6b5-7466-4db1-bcdf-57c835e53bbc`, requestBody);
+      console.log("risposta al servizio ")
+      console.log(responseRequest);
+      console.log(responseRequest.data.responseCode);
+      if (responseRequest.data.responseCode==="200") {
+        toast.success('Data entity send to push_uri service');
+      }else{
+        toast.error('Data entity didn t send to push_uri service');
+      }
+      setTimeout(() => {
+         window.location.href = '/provideDataPush';
+        }, 3000);
     } catch (error) {
       console.error('Error saving data: ', error);
      
@@ -183,6 +204,8 @@ const CreateDataEntity = () => {
     }
     axiosWithInterceptorInstance.get(`/dataset/my_offered_services/${value}`)
       .then(response => {
+        console.log("elenco servizi tra cui scegliere ")  // qui devo prendere il push_uri
+        console.log(response);
         setCardElements(prevState => ({
           ...prevState,
           title: response.data.data_catalog_data_offerings_obj.title,
@@ -193,7 +216,8 @@ const CreateDataEntity = () => {
           serviceCode: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.code,
           serviceName: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.name,
           categoryCode: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.code,
-          categoryName: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.name
+          categoryName: response.data.data_catalog_data_offerings_obj.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.name,
+          push_uri:response.data.data_catalog_data_offerings_obj.push_uri
         }));
       })
       .catch(error => {
@@ -337,7 +361,7 @@ const CreateDataEntity = () => {
 
 
       {modalStates.DataOfferingModal && (
-        <Service
+        <ServicePush
           show={modalStates.DataOfferingModal}
           handleClose={() => handleCloseModal('DataOfferingModal')}
           onModalDataChange={handleModalDataChange}
@@ -349,5 +373,5 @@ const CreateDataEntity = () => {
   );
 };
 
-export default CreateDataEntity;
+export default CreateDataEntityPush;
 

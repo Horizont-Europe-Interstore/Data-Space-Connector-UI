@@ -8,28 +8,23 @@ import Categories from '../modals/Categories';
 import Service from '../modals/Service';
 import BusinnesObject from '../modals/BusinnesObject';
 import { EditService, RequestsOnService } from '@app/components/helpers/Buttons';
-import { NewDataService } from '@app/components/helpers/Buttons';
-import { NewPushService } from '@app/components/helpers/Buttons';
+//import Truncate from 'react-truncate-string'
+//import Truncate from 'react-truncate';
+//import TextTruncate from 'react-text-truncate';
 import Inner from '@app/components/helpers/InnerHtml';
 import Pagination from '@app/components/helpers/Pagination';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import { useDispatch } from 'react-redux';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
-import { bool } from 'yup';
 import { useLocation } from 'react-router-dom';
-const API_URL_FILTERS = "datalist/left-grouping/my_offered_services";
-const API_URL_DATA_PUSH = "/datalist/my_push_offered_services/page/"; // utilizzato il nuovo solo xke nel vecchio mancano i campi type e url se si aggiungono in teoria dovrebbe funzionare lo stesso 
-const API_URL_DATA = "/datalist/my_offered_services/page/";
+const API_URL_FILTERS = "datalist/left-grouping/my_catalog";
+//const API_URL_DATA = "/datalist/my_push_offered_services/page/"; // utilizzato il nuovo solo xke nel vecchio mancano i campi type e url se si aggiungono in teoria dovrebbe funzionare lo stesso 
+const API_URL_DATA = "/datalist/my_catalog/page/";
 interface IFilterValues {
-  category: string;
-  cf_id: string;
+  created_by_username: string,
   title: string;
   created_on: string;
-  profile_selector: string;
-  profile_description: string;
-  status: string;
-  subscriptions: string;
 }
 interface IFilter {
   id: string | null;
@@ -51,26 +46,24 @@ interface ITableData {
   service_id: string;
   cf_type: string;
   cf_push_uri: string;
+  created_by_username: string;
 }
-const MyOfferedServices: React.FC = () => {
+
+const Catalog: React.FC = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const type = queryParams.get('type');
-
   const dispatch = useDispatch();
   const [data, setData] = useState<ITableData[]>([]);
   const [filters, setFilters] = useState<IFilter[]>([]);
   type ExpandedFiltersByLevel = { [level: number]: string | null };
   const [expandedFiltersByLevel, setExpandedFiltersByLevel] = useState<ExpandedFiltersByLevel>({});
+  const [isPushEnabled, setIsPushEnabled] = useState( type==="push" ? "push" :  ((window as any)["env"]["isPushEnabled"] ? "" : "data")    ); //type==="push" ? true : false
   const [filterValues, setFilterValues] = useState<IFilterValues>({
-    category: "",
-    cf_id: "",
+    created_by_username: "",
     title: "",
     created_on: "",
-    profile_selector: "",
-    profile_description: "",
-    status: "",
-    subscriptions: ""
+
   });
   const [modalStates, setModalStates] = useState({
     categoriesModal: false,
@@ -79,84 +72,64 @@ const MyOfferedServices: React.FC = () => {
   });
   const [columnToFilter, setcolumnToFilter] = useState({ name: '', value: '' });
   const [categoryOrdering, setCategoryOrdering] = useState("");
+  const [offeringOrdering, setofferingOrdering] = useState("");
   const [titleOrdering, setTitleOrdering] = useState("");
   const [createdOnOrdering, setCreatedOnOrdering] = useState("");
-  const [profileFormatOrdering, setProfileFormatOrdering] = useState("");
-  const [profileDescriptionOrdering, setProfileDescriptionOrdering] = useState("");
-  const [isPushEnabled, setIsPushEnabled] = useState(type==="push" ? true : false);
   function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
     switch (columnToFilter) {
+
       case "category": {
         setCategoryOrdering(ChangingOrder(categoryOrdering))
+        setofferingOrdering("")
         setTitleOrdering("")
         setCreatedOnOrdering("")
-        setProfileFormatOrdering("")
-        setProfileDescriptionOrdering("")
         setcolumnToFilter(prevState => ({
           ...prevState,
           name: "category",
           value: categoryOrdering
         }));
-
+        setCurrentPage(1)
+        break;
+      }
+      case "created_by_username": {
+        setofferingOrdering(ChangingOrder(offeringOrdering))
+        setCategoryOrdering("")
+        setTitleOrdering("")
+        setCreatedOnOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "created_by_username",
+          value: offeringOrdering
+        }));
+        setCurrentPage(1)
         break;
       }
       case "title": {
         setTitleOrdering(ChangingOrder(titleOrdering))
         setCategoryOrdering("")
+        setofferingOrdering("")
         setCreatedOnOrdering("")
-        setProfileFormatOrdering("")
-        setProfileDescriptionOrdering("")
         setcolumnToFilter(prevState => ({
           ...prevState,
           name: "title",
           value: titleOrdering
         }));
-
+        setCurrentPage(1)
         break;
       }
       case "created_on": {
         setCreatedOnOrdering(ChangingOrder(createdOnOrdering))
         setCategoryOrdering("")
+        setofferingOrdering("")
         setTitleOrdering("")
-        setProfileFormatOrdering("")
-        setProfileDescriptionOrdering("")
         setcolumnToFilter(prevState => ({
           ...prevState,
           name: "created_on",
           value: createdOnOrdering
         }));
-
+        setCurrentPage(1)
         break;
       }
-      case "profile_selector": {
-        setProfileFormatOrdering(ChangingOrder(profileFormatOrdering))
-        setCategoryOrdering("")
-        setTitleOrdering("")
-        setCreatedOnOrdering("")
-        setProfileDescriptionOrdering("")
-        setcolumnToFilter(prevState => ({
-          ...prevState,
-          name: "profile_selector",
-          value: profileFormatOrdering
-        }));
-
-        break;
-      }
-      case "profile_description": {
-        setProfileDescriptionOrdering(ChangingOrder(profileDescriptionOrdering))
-        setCategoryOrdering("")
-        setTitleOrdering("")
-        setCreatedOnOrdering("")
-        setProfileFormatOrdering("")
-        setcolumnToFilter(prevState => ({
-          ...prevState,
-          name: "profile_description",
-          value: profileDescriptionOrdering
-        }));
-
-        break;
-      }
-
     }
   }
   type ModalFilter = {
@@ -177,7 +150,7 @@ const MyOfferedServices: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [pageSize, setPageSize] = useState(0);
-  const [visibility, setVisibility] = useState("");
+  const [visibility, setVisibility] = useState(""); //type==="push" ? true : false
 
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -190,6 +163,9 @@ const MyOfferedServices: React.FC = () => {
   };
 
   useEffect(() => {
+    /* if (type === "push" && visibility !== "push"){
+      changeScenario("push")
+    } */
     fetchData();
   }, [filterValuesFromModals, visibility, expandedFiltersByLevel, currentPage, isPushEnabled]);
 
@@ -209,10 +185,10 @@ const MyOfferedServices: React.FC = () => {
   const generateFilterQuery = () => {
     let query = '';
     let index = 0;
-    const filterKeys: (keyof IFilterValues)[] = ['category', 'title', 'created_on', 'profile_selector', 'profile_description', 'status', 'subscriptions'];
+    const filterKeys: (keyof IFilterValues)[] = ['created_by_username', 'title', 'created_on'];
     filterKeys.forEach(key => {
       if (filterValues[key]) {
-
+        console.log(key, filterValues[key])
         if (index > 0) {
           query += `&`;
         }
@@ -234,18 +210,11 @@ const MyOfferedServices: React.FC = () => {
     }
     return query;
   };
-  const changeScenario = (isPushEnabled: boolean) => {
+
+  const changeScenario = (isPushEnabled: string) => {
 
     setIsPushEnabled(isPushEnabled)
 
-    /* if (isPushEnabled) {
-      setIsPushEnabled(() => false)
-    } else { //is not a push scenario, we would like to enable it
-      if ((window as any)["env"]["isPushEnabled"]) { //Just a check that we can enable it
-        setIsPushEnabled(() => true)
-      }
-    } */
-    //setCurrentPage(() => 0)
     clearActiveFilter()
     let modalFilters: string[] = ['category_id', 'serviceModal', 'BOModal']
     modalFilters.forEach((mf) => {
@@ -254,8 +223,8 @@ const MyOfferedServices: React.FC = () => {
 
     )
     setVisibility(() => "")
-
   };
+
   const fetchData = async () => {
     try {
       let filterQuery = '';
@@ -273,19 +242,12 @@ const MyOfferedServices: React.FC = () => {
       if (expandedFiltersByLevel[3]) {
         filterQuery = filterQuery + `&${encodeURIComponent("users_group")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
       }
+      //let response;
+      const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA}${currentPage - 1}?cf_type=${isPushEnabled}&${filter2Query}${filterQuery}&ft_status=${visibility}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
 
-      if (isPushEnabled) {
-        const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA_PUSH}${currentPage - 1}?cf_type=push&${filter2Query}${filterQuery}&ft_status=${visibility}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
-        setData(response.data.listContent);
-        setTotalPages(response.data.totalPages);
-        setPageSize(response.data.pageSize)
-      } else {
-        const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize: number }>(`${API_URL_DATA_PUSH}${currentPage - 1}?cf_type=data&${filter2Query}${filterQuery}&ft_status=${visibility}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
-        setData(response.data.listContent);
-        setTotalPages(response.data.totalPages);
-        setPageSize(response.data.pageSize)
-      }
-
+      setData(response.data.listContent);
+      setTotalPages(response.data.totalPages);
+      setPageSize(response.data.pageSize)
     } catch (error: unknown) {
       console.error('Error fetching data:', error);
     }
@@ -345,15 +307,6 @@ const MyOfferedServices: React.FC = () => {
     setCurrentPage(1)
   };
 
-
-  /* const cancelModalFilters = (modalName: string) => {
-    setFilterValuesFromModals({
-      ...filterValuesFromModals,
-      [modalName]: ""
-    });
-    setCurrentPage(1)
-  }; */
-
   const cancelModalFilters = (modalName: string) => {
     setFilterValuesFromModals((prev) => ({
       ...prev,
@@ -361,6 +314,7 @@ const MyOfferedServices: React.FC = () => {
     }));
     setCurrentPage(1);
   };
+
   const handleOpenModal = (modalName: string) => {
     setModalStates({ ...modalStates, [modalName]: true });
   };
@@ -383,34 +337,19 @@ const MyOfferedServices: React.FC = () => {
     }
   };
 
+
   return (
     <Container fluid >
       <div className='row' >
-
-        <div className='col'>
-          <h2> <i className="fas fa-external-link-alt nav-icon" style={{ paddingRight: "8px" }}> </i> <b>My Offered Services</b></h2>
-          <h5>Navigate to your Offered Services</h5>
+        <div className='col-11'>
+          <h2> <i className="fas fa-layer-group nav-icon" style={{ paddingRight: "8px" }}> </i> <b>Catalog</b></h2>
+          <h5>Navigate the catalog</h5>
         </div>
 
-        <div className='col d-flex justify-content-end'>
-          <Row className='flex-nowrap' >
-            <Col >
-
-
-            </Col>
-            <Col>
-
-              {!isPushEnabled && <Button onClick={() => NewDataService()} className="btn btn-success" data-bs-toggle="tooltip" data-placement="top" title="Create a new Data service" style={{ whiteSpace: 'nowrap' }}>
-                New Data Service   <i className="fa fa-plus"></i>
-              </Button>}
-
-              {isPushEnabled && <Button onClick={() => NewPushService()} className="btn btn-success" data-bs-toggle="tooltip" data-placement="top" title="Create a new Push service" style={{ whiteSpace: 'nowrap' }}>
-                New Push Service   <i className="fa fa-plus"></i>
-              </Button>}
-
-
-            </Col>
-          </Row>
+        <div className='col'>
+          {/*  <Button onClick={() => New()} className="btn btn-success" data-bs-toggle="tooltip" data-placement="top" title="Create a new offered service" >
+            New   <i className="fa fa-plus"></i>
+          </Button> */}
         </div>
 
       </div>
@@ -419,25 +358,8 @@ const MyOfferedServices: React.FC = () => {
       <Row style={{ paddingTop: "30px", flexWrap: "nowrap", display: "flex" }}>
         <Col md={2} style={{ display: 'flex', flexDirection: 'column' }}>
 
-
-
-          <div className="input-basic mb-3" style={{ transform: "scale(0.8)", backgroundColor: "", position: "relative" }}>
-            <Dropdown drop='up' data-bs-toggle="tooltip" data-placement="top" title="Select the status of the services you want visualize">
-              <Dropdown.Toggle id="dropdown-basic" >
-                Service status: {visibility} {(visibility === "") && "any"}
-              </Dropdown.Toggle>
-
-              <Dropdown.Menu>
-                <Dropdown.Item >------</Dropdown.Item>
-                <Dropdown.Item onClick={() => handleVisibility(1)}>Any</Dropdown.Item>
-                <Dropdown.Item onClick={() => handleVisibility(2)}>Active</Dropdown.Item>
-                <Dropdown.Item onClick={() => handleVisibility(3)}>Disabled</Dropdown.Item>
-
-              </Dropdown.Menu>
-            </Dropdown>
-          </div>
           <Card>
-            <h5 style={{ paddingLeft: "10px", paddingTop: "10px" }}><b>Offered Services Categorization</b></h5>
+            <h5 style={{ paddingLeft: "10px", paddingTop: "10px", paddingRight: "10px" }}><b>Services Categorization</b></h5>
             <h6 style={{ padding: "10px" }}>Navigate & Filter Data Offerings by Category, Service, Business Object & User categorization tree </h6>
             {renderButtonGroup(filters)}
             <div style={{ padding: "15px" }}>
@@ -449,7 +371,6 @@ const MyOfferedServices: React.FC = () => {
             <h5 style={{ paddingLeft: "10px", paddingTop: "10px" }}><b>Filters</b></h5>
             <h6 style={{ padding: "10px" }}>Select & Refine Seach </h6>
             <table className="table">
-
               <tbody>
                 <tr>
                   <td>
@@ -461,7 +382,6 @@ const MyOfferedServices: React.FC = () => {
                       <input className="form-control" data-toggle="tooltip" data-placement="top" title={filterValuesFromModals.category_id.name} placeholder={filterValuesFromModals.category_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
                       <button onClick={() => cancelModalFilters('category_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                         <i className="fas fa-trash"></i>
-
                       </button>
                     </div>
                   </td>
@@ -476,7 +396,6 @@ const MyOfferedServices: React.FC = () => {
                       <input className="form-control" data-toggle="tooltip" data-placement="top" title={filterValuesFromModals.service_id.name} placeholder={filterValuesFromModals.service_id.name} aria-label="Example text with button addon" aria-describedby="button-addon1" />
                       <button onClick={() => cancelModalFilters('service_id')} className="btn btn-outline-secondary" type="button" id="button-addon1">
                         <i className="fas fa-trash"></i>
-
                       </button>
                     </div>
                   </td>
@@ -500,25 +419,7 @@ const MyOfferedServices: React.FC = () => {
           </Card>
         </Col>
         <Col >
-
           <Form onSubmit={handleSubmit}>
-
-
-            <ul className="nav nav-tabs">
-              {!isPushEnabled && <li className="nav-item">
-                <a className="nav-link active " href="#" onClick={() => changeScenario(false)} >Data</a>
-              </li>}
-              {isPushEnabled && <li className="nav-item">
-                <a className="nav-link " href="#" onClick={() => changeScenario(false)} >Data</a>
-              </li>}
-              {(window as any)["env"]["isPushEnabled"] && !isPushEnabled && <li className="nav-item">
-                <a className="nav-link " aria-current="page" href="#" onClick={() => changeScenario(true)} >Push</a>
-              </li>}
-              {(window as any)["env"]["isPushEnabled"] && isPushEnabled && <li className="nav-item">
-                <a className="nav-link active" aria-current="page" href="#" onClick={() => changeScenario(true)} >Push</a>
-              </li>}
-            </ul>
-
             <Table striped bordered hover>
               <thead>
 
@@ -528,20 +429,19 @@ const MyOfferedServices: React.FC = () => {
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(categoryOrdering, "category")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
                     {categoryOrdering === "desc" && <i className="fas fa-sort-up"></i>}{categoryOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!categoryOrdering && <i className="fas fa-sort"></i>}
                   </button></th>
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>User Offering <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(offeringOrdering, "created_by_username")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {offeringOrdering === "desc" && <i className="fas fa-sort-up"></i>}{offeringOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!offeringOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(titleOrdering, "title")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
                     {titleOrdering === "desc" && <i className="fas fa-sort-up"></i>}{titleOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!titleOrdering && <i className="fas fa-sort"></i>}
                   </button></th>
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Created On <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(createdOnOrdering, "created_on")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
                     {createdOnOrdering === "desc" && <i className="fas fa-sort-up"></i>}{createdOnOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!createdOnOrdering && <i className="fas fa-sort"></i>}
                   </button></th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Profile Format <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(profileFormatOrdering, "profile_selector")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
-                    {profileFormatOrdering === "desc" && <i className="fas fa-sort-up"></i>}{profileFormatOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!profileFormatOrdering && <i className="fas fa-sort"></i>}
-                  </button></th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Profile Description <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(profileDescriptionOrdering, "profile_description")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
-                    {profileDescriptionOrdering === "desc" && <i className="fas fa-sort-up"></i>}{profileDescriptionOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!profileDescriptionOrdering && <i className="fas fa-sort"></i>}
-                  </button></th>
+
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Status</th>
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Subscriptions</th>
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Type</th>
                 </tr>
               </thead>
               <tbody>
@@ -551,11 +451,19 @@ const MyOfferedServices: React.FC = () => {
                   <td></td>
                   <td><Form.Control
                     type="text"
+                    name="created_by_username"
+                    placeholder="Filter"
+                    value={filterValues.created_by_username}
+                    onChange={handleInputChange}
+                  /></td>
+                  <td><Form.Control
+                    type="text"
                     name="title"
                     placeholder="Filter"
                     value={filterValues.title}
                     onChange={handleInputChange}
                   /></td>
+
                   <td><Form.Control
                     type="text"
                     name="created_on"
@@ -563,31 +471,48 @@ const MyOfferedServices: React.FC = () => {
                     value={filterValues.created_on}
                     onChange={handleInputChange}
                   /></td>
-                  <td><Form.Control
-                    type="text"
-                    name="profile_selector"
-                    placeholder="Filter"
-                    value={filterValues.profile_selector}
-                    onChange={handleInputChange}
-                  /></td>
 
-                  <td><Form.Control
-                    type="text"
-                    name="profile_description"
-                    placeholder="Filter"
-                    value={filterValues.profile_description}
-                    onChange={handleInputChange}
-                  /></td>
+
+
+                  <td><Dropdown drop='down' data-bs-toggle="tooltip" data-placement="down" title="Select the status of the services you want visualize">
+                    <Dropdown.Toggle id="dropdown-basic" >
+                      Service status: {visibility} {(visibility === "") && "any"}
+                    </Dropdown.Toggle>
+
+                    <Dropdown.Menu>
+                      <Dropdown.Item >------</Dropdown.Item>
+                      <Dropdown.Item onClick={() => handleVisibility(1)}>Any</Dropdown.Item>
+                      <Dropdown.Item onClick={() => handleVisibility(2)}>Active</Dropdown.Item>
+                      <Dropdown.Item onClick={() => handleVisibility(3)}>Disabled</Dropdown.Item>
+
+                    </Dropdown.Menu>
+                  </Dropdown></td>
+
                   <td></td>
-                  <td></td>
+                  <td>
+                    {(window as any)["env"]["isPushEnabled"] && <Dropdown drop='down' data-bs-toggle="tooltip" data-placement="top" title="Select the status of the services you want visualize">
+                      <Dropdown.Toggle id="dropdown-basic" >
+                        Select type: {isPushEnabled === "" && "any"} {isPushEnabled !== "" && isPushEnabled}
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>
+
+                        <Dropdown.Item onClick={() => changeScenario("")}>Any</Dropdown.Item>
+                        <Dropdown.Item >------</Dropdown.Item>
+                        <Dropdown.Item onClick={() => changeScenario("push")}>Push</Dropdown.Item>
+                        <Dropdown.Item onClick={() => changeScenario("data")}>Data</Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>}
+                  </td>
+
                 </tr>
+
                 {data.map((item, index) => (
                   <tr key={index}>
                     <th scope="row">{(((currentPage - 1)) * pageSize) + index + 1}</th>
                     <td>
                       <div className='row d-flex flex-nowrap'>
                         <div className='col'>
-                          <Button variant="outline-light" className="btn btn-primary" onClick={() => EditService(item.cf_id, "myOfferedServices")} data-bs-toggle="tooltip" data-placement="top" title="Edit your offered service">
+                          <Button variant="outline-light" className="btn btn-primary" onClick={() => EditService(item.cf_id, "catalog")} data-bs-toggle="tooltip" data-placement="top" title="Edit your offered service">
                             <i className="fas fa-pencil-alt"></i>
                           </Button></div>
                         <div className='col'>
@@ -598,13 +523,43 @@ const MyOfferedServices: React.FC = () => {
                       </div>
                     </td>
 
-                    <td>{Inner(item.category)}</td>
+                    <td dangerouslySetInnerHTML={{ __html: item.category }}></td>
+                    <td dangerouslySetInnerHTML={{ __html: item.created_by_username }}></td>
                     <td>{item.title}</td>
                     <td>{item.created_on}</td>
-                    <td>{item.profile_selector}</td>
-                    <td>{item.profile_description}</td>
                     <td>{Inner(item.status)}</td>
-                    <td>{Inner(item.subscriptions)}</td>
+                    <td>
+                      <div style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3, 
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'normal'
+                      }}>
+                        <span dangerouslySetInnerHTML={{ __html: item.subscriptions }} data-bs-toggle="tooltip" data-placement="top" title={Inner(item.subscriptions)}/>
+
+                      </div>
+                    </td>
+
+                    {/* <td
+                      dangerouslySetInnerHTML={{ __html: item.subscriptions }}
+                      style={{
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                        textOverflow: 'ellipsis',
+                        maxHeight: '1px', 
+                        
+                      }} data-bs-toggle="tooltip" data-placement="top" title={Inner(item.subscriptions)}
+                    />  */}
+                    {/*  <td style={{
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                        textOverflow: 'ellipsis',
+                        maxWidth: '20px', 
+                      }} data-bs-toggle="tooltip" data-placement="top" title={Inner(item.subscriptions)}>{Inner(item.subscriptions)}</td> */}
+
+                    <td>{Inner(item.cf_type)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -643,4 +598,4 @@ const MyOfferedServices: React.FC = () => {
   );
 };
 
-export default MyOfferedServices;
+export default Catalog;

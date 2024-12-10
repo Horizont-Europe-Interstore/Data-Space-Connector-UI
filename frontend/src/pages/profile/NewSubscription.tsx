@@ -92,7 +92,12 @@ const body: RequestBody = {
 };
 
 const NewSubscription = () => {
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const type = queryParams.get('type');
     const [data, setData] = useState<Data_catalog_data_offerings | null>(null);
+    const [modalMessage, setModalMessage] = useState('');
+
     const handleChange = (name: keyof DataCatalogDataRequest, value: string) => {
         setData(prevData => {
             if (prevData === null) {
@@ -117,6 +122,7 @@ const NewSubscription = () => {
     });
 
     const handleOpenModal = (modalName: string) => {
+       
         setModalStates({ ...modalStates, [modalName]: true });
     };
 
@@ -153,8 +159,10 @@ const NewSubscription = () => {
 
 
         try {
+            console.log("creo subscription input :")
+            console.log(body)
             const response = await axiosWithInterceptorInstance.post('/dataset/my_subscriptions', body);
-            window.location.href = '/mySubscriptions'
+            window.location.href = `/mySubscriptions?type=${type}`
         } catch (error) {
             console.error('Error saving data: ', error);
         }
@@ -378,11 +386,12 @@ const NewSubscription = () => {
 
                 </ListGroup>
             </Card>
-            {modalStates.offeringModal && (
+            {modalStates.offeringModal && type && (
                 <Offering
                     show={modalStates.offeringModal}
                     handleClose={() => handleCloseModal('offeringModal')}
                     onModalDataChange={handleModalDataChange}
+                    message={type}
                 />
             )}
         </Container>

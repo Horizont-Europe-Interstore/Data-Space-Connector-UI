@@ -14,6 +14,7 @@ interface Company {
 }
 interface User_offering {
     company_obj: Company;
+    username: string;
 }
 interface User {
     id: string;
@@ -50,7 +51,7 @@ interface Data_catalog_data_requests {
     data_catalog_data_offering_id: string;
     created_on: string;
     data_catalog_data_offerings_obj: Data_catalog_data_offerings;
-    comments:string;
+    comments: string;
     user_obj: User;
 }
 
@@ -75,15 +76,15 @@ const EditSubscription = () => {
 
     return (
         <Container fluid>
-           <div className='row' style={{ paddingBottom: "15px" }}>
-               
-                    <h2> <b><i className="fas fa-newspaper nav-icon " style={{ paddingRight: "8px" }}></i>  My Subscription</b></h2>
-                
-               
+            <div className='row' style={{ paddingBottom: "15px" }}>
+
+                <h2> <b><i className="fas fa-newspaper nav-icon " style={{ paddingRight: "8px" }}></i>  My Subscription</b></h2>
+
+
             </div>
             <Card >
-            <h3 className="list-group-item-heading" style={{ paddingLeft: "20px", paddingTop: "20px" }}><b>  <i className="fas fa-external-link-alt nav-icon" style={{ paddingRight: "8px" }}> </i> Offered Services</b></h3>
-        <h6 style={{ paddingLeft: " 20px" }}>Select Offered Service For This Subscription Request</h6>
+                <h3 className="list-group-item-heading" style={{ paddingLeft: "20px", paddingTop: "20px" }}><b>  <i className="fas fa-external-link-alt nav-icon" style={{ paddingRight: "8px" }}> </i> Offered Services</b></h3>
+                <h6 style={{ paddingLeft: " 20px" }}>Select Offered Service For This Subscription Request</h6>
                 <ListGroup variant="flush">
 
 
@@ -209,7 +210,7 @@ const EditSubscription = () => {
                                     <Label for="serviceName">Offering Username</Label>
                                     <Form.Control
                                         type="text"
-                                        value={data?.user_obj.username}
+                                        value={data?.data_catalog_data_offerings_obj.user_offering_obj.username}
                                         aria-label="Disabled input example"
                                         readOnly
                                     />

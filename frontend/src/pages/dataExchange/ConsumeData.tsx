@@ -16,6 +16,7 @@ import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
 const API_URL_FILTERS = "/datalist/left-grouping/data_consumed";
 const API_URL_DATA = "/datalist/data_consumed/page/";
+const API_URL_DATA_PUSH = "/datalist/push_data_consumed/page/";
 interface IFilterValues {
   data_catalog_category_name: string;
   id: string;
@@ -28,6 +29,7 @@ interface IFilterValues {
   file_name: string;
   provider_username: string;
   data_title: string;
+  offering_title:string;
 }
 interface IFilter {
   id: string | null;
@@ -60,6 +62,7 @@ const ConsumeData: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   type ExpandedFiltersByLevel = { [level: number]: string | null };
   const [expandedFiltersByLevel, setExpandedFiltersByLevel] = useState<ExpandedFiltersByLevel>({});
+  const [isPushEnabled, setIsPushEnabled] = useState(false);
   const [filterValues, setFilterValues] = useState<IFilterValues>({
     data_catalog_category_name: "",
     id: "",
@@ -71,7 +74,8 @@ const ConsumeData: React.FC = () => {
     subscriptions: "",
     file_name: "",
     provider_username: "",
-    data_title: ""
+    data_title: "",
+    offering_title:""
   });
 
   const [modalStates, setModalStates] = useState({
@@ -182,16 +186,16 @@ const ConsumeData: React.FC = () => {
   };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilterValues({ ...filterValues, [e.target.name]: e.target.value });
-
+    setCurrentPage(1)
   };
 
   useEffect(() => {
     fetchData();
-  }, [filterValuesFromModals, currentPage, expandedFiltersByLevel]);
+  }, [filterValuesFromModals, currentPage, expandedFiltersByLevel, isPushEnabled]);
 
   useEffect(() => {
     fetchFilters();
-  }, []);
+  }, [isPushEnabled]);
 
   const fetchFilters = async () => {
     try {
@@ -205,7 +209,7 @@ const ConsumeData: React.FC = () => {
   const generateFilterQuery = () => {
     let query = '';
     let index = 0;
-    const filterKeys: (keyof IFilterValues)[] = ['data_catalog_category_name', 'title', 'created_on', 'profile_selector', 'data_description', 'status', 'subscriptions', 'file_name', 'provider_username', 'data_title'];
+    const filterKeys: (keyof IFilterValues)[] = ['data_catalog_category_name', 'title', 'created_on', 'profile_selector', 'data_description', 'status', 'subscriptions', 'file_name', 'provider_username', 'data_title', 'offering_title'];
 
     filterKeys.forEach(key => {
       if (filterValues[key]) {
@@ -244,6 +248,27 @@ const ConsumeData: React.FC = () => {
     return query;
   };
 
+  const changeScenario = (isPushEnabled: boolean) => {
+
+    setIsPushEnabled(isPushEnabled)
+
+    /* if (isPushEnabled) {
+      setIsPushEnabled(() => false)
+    } else { //is not a push scenario, we would like to enable it
+      if ((window as any)["env"]["isPushEnabled"]) { //Just a check that we can enable it
+        setIsPushEnabled(() => true)
+      }
+    } */
+    //setCurrentPage(() => 0)
+    clearActiveFilter()
+    let modalFilters: string[] = ['category_id', 'serviceModal', 'BOModal']
+    modalFilters.forEach((mf) => {
+      cancelModalFilters(mf)
+    }
+
+    )
+  };
+
   const fetchData = async () => {
     try {
       let filterQuery = '';
@@ -262,10 +287,24 @@ const ConsumeData: React.FC = () => {
 
         filterQuery = filterQuery + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
       }
-      const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
-
+      //console.log("url")
+      //console.log(API_URL_DATA + "?service_type=push&ft_created_by=" + localStorage.getItem("uid"))
+      // const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
+      /* const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(API_URL_DATA + (currentPage - 1) + "?service_type=push&ft_created_by=" + localStorage.getItem("uid"));
       setData(response.data.listContent);
-      setTotalPages(response.data.totalPages);
+      setTotalPages(response.data.totalPages); */
+
+      if (isPushEnabled) {
+        const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(API_URL_DATA_PUSH + (currentPage - 1) + `?service_type=push&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}&${filter2Query}${filterQuery}&ft_created_by=` + localStorage.getItem("uid"));
+        setData(response.data.listContent);
+        setTotalPages(response.data.totalPages);
+        //setPageSize(response.data.pageSize)
+      } else {
+        const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(API_URL_DATA + (currentPage - 1) + `?service_type=&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}&${filter2Query}${filterQuery}&ft_created_by=` + localStorage.getItem("uid"));
+        setData(response.data.listContent);
+        setTotalPages(response.data.totalPages);
+        //setPageSize(response.data.pageSize)
+      }
     } catch (error: unknown) {
       console.error('Error fetching data:', error);
     }
@@ -435,6 +474,21 @@ const ConsumeData: React.FC = () => {
         </Col>
         <Col >
           <Form onSubmit={handleSubmit}>
+            <ul className="nav nav-tabs">
+
+              {!isPushEnabled && <li className="nav-item">
+                <a className="nav-link active " href="#" onClick={() => changeScenario(false)} >Data</a>
+              </li>}
+              {isPushEnabled && <li className="nav-item">
+                <a className="nav-link " href="#" onClick={() => changeScenario(false)} >Data</a>
+              </li>}
+              {(window as any)["env"]["isPushEnabled"] && !isPushEnabled && <li className="nav-item">
+                <a className="nav-link " aria-current="page" href="#" onClick={() => changeScenario(true)} >Push</a>
+              </li>}
+              {(window as any)["env"]["isPushEnabled"] && isPushEnabled && <li className="nav-item">
+                <a className="nav-link active" aria-current="page" href="#" onClick={() => changeScenario(true)} >Push</a>
+              </li>}
+            </ul>
             <Table striped bordered hover>
               <thead>
                 <tr>
@@ -463,8 +517,24 @@ const ConsumeData: React.FC = () => {
                   <td></td>
                   <td></td>
                   <td></td>
-                  <td></td>
-                  <td></td>
+
+                  <td><Form.Control
+                    type="text"
+                    name="offering_title"
+                    placeholder="Filter"
+                    value={filterValues.offering_title}
+                    onChange={handleInputChange}
+                  /></td>
+
+                  <td><Form.Control
+                    type="text"
+                    name="provider_username"
+                    placeholder="Filter"
+                    value={filterValues.provider_username}
+                    onChange={handleInputChange}
+                  /></td>
+
+
                   <td><Form.Control
                     type="text"
                     name="created_on"

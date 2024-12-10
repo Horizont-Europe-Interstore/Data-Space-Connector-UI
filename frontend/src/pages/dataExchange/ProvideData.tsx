@@ -8,6 +8,7 @@ import Service from '../modals/Service';
 import BusinnesObject from '../modals/BusinnesObject';
 import { EditDataEntity } from '@app/components/helpers/Buttons';
 import { NewDataEntity } from '@app/components/helpers/Buttons';
+import { NewDataEntityPush } from '@app/components/helpers/Buttons';
 import Pagination from '@app/components/helpers/Pagination';
 import { Card } from 'reactstrap';
 import { format } from 'date-fns';
@@ -315,15 +316,20 @@ const ProvideData: React.FC = () => {
   return (
     <Container fluid>
       <div className='row'>
-        <div className='col-11'>
+
+        <div className='col'  >
+       
           <h2> <i className="fas fa-cloud-upload-alt nav-icon" style={{ paddingRight: "8px" }}> </i> <b>Data Provided</b></h2>
           <h5>Navigate to your Data Provided</h5>
         </div>
 
-        <div className='col'>
-          <Button className="btn btn-success" onClick={() => NewDataEntity()} data-toggle="tooltip" data-placement="top" title="Provide a new data">
-            New   <i className="fa fa-plus"></i>
+        <div className='col' style={{ marginLeft:"auto", whiteSpace:"nowrap" , display:"flex"}}>
+          <div className="content-container" style={{marginLeft:"auto", display:"flex"}}> 
+            <Button className="btn btn-success" onClick={() => NewDataEntity()} data-toggle="tooltip" data-placement="top" title="Provide a new data" style={{ marginRight: "10px", height:"50%" }}>
+            New Data  <i className="fa fa-plus"></i>
           </Button>
+         
+          </div>
         </div>
 
       </div>

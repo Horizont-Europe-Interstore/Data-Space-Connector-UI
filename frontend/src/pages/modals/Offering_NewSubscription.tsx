@@ -4,12 +4,15 @@ import Inner from '@app/components/helpers/InnerHtml';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
 import checkLevel from '@app/components/helpers/CheckLevel';
-const API_URL_FILTERS = "datalist/left-grouping/my_offered_services";
+import { toast } from 'react-toastify';
+//const API_URL_FILTERS = "datalist/left-grouping/my_offered_services";
+const API_URL_FILTERS = "/list/left-grouping/results?id=3878c122-7fb7-40fb-97b0-bfb66c8b35ca";
 
 interface CategorizeProps {
     show: boolean;
     handleClose: () => void;
     onModalDataChange: (modalName: string, value: string) => void;
+    message:string;
 }
 interface ITableData {
     sqlf_10: string;
@@ -41,7 +44,10 @@ interface IFilterValues {
     cross_platform_service_id: string;
     sqlf_10: string;
 }
-const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChange }) => {
+interface IExisting {
+    totalRows: number;
+}
+const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChange, message }) => {
     const [data, setData] = useState<ITableData[]>([]);
     const [filters, setFilters] = useState<IFilter[]>([]);
     type ExpandedFiltersByLevel = { [level: number]: string | null };
@@ -50,6 +56,7 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
     const [columnToFilter, setcolumnToFilter] = useState({ name: 'cf_created_on', value: 'asc' });
     const [createdOnOrdering, setCreatedOnOrdering] = useState("");
     const [titleOrdering, setTitleOrdering] = useState("");
+    const [isPushEnabled, setIsPushEnabled] = useState(message ==="push" ? true : false);
 
     const [filterValues, setFilterValues] = useState<IFilterValues>({
         cf_title: "",
@@ -93,7 +100,7 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
 
     useEffect(() => {
         fetchFilters();
-    }, []);
+    }, [isPushEnabled]);
 
     const fetchFilters = async () => {
         try {
@@ -130,6 +137,21 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
             }
         }
     }
+    const changeScenario = (isPushEnabled: boolean) => {
+
+        setIsPushEnabled(isPushEnabled)
+
+        /* if (isPushEnabled) {
+          setIsPushEnabled(() => false)
+        } else { //is not a push scenario, we would like to enable it
+          if ((window as any)["env"]["isPushEnabled"]) { //Just a check that we can enable it
+            setIsPushEnabled(() => true)
+          }
+        } */
+        //setCurrentPage(() => 0)
+        clearActiveFilter()
+
+    };
     const fetchData = async () => {
         let filterQuery = '';
         let filter2Query = generateFilterQuery();
@@ -146,21 +168,51 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
             filterQuery = filterQuery + `&${encodeURIComponent("sqlgf_4")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
         }
         try {
-            const response = await axiosWithInterceptorInstance.get(`/list/results/page/0?id=3878c122-7fb7-40fb-97b0-bfb66c8b35ca&ft_id_2=9a7db9a7-9942-499a-a5ac-0a41a99b7b87&ft_status=active&dates_check=active&country_check=active&cluster_check=active&market_check=active&role_check=active&language-id=2&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}&${filterQuery}${filter2Query}`);
-            setData(response.data.listContent);
+
+            if (isPushEnabled) {
+                const response = await axiosWithInterceptorInstance.get(`/list/results/page/0?id=3878c122-7fb7-40fb-97b0-bfb66c8b35ca&cf_type=push&ft_id_2=9a7db9a7-9942-499a-a5ac-0a41a99b7b87&ft_status=active&dates_check=active&country_check=active&cluster_check=active&market_check=active&role_check=active&language-id=2&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}&${filterQuery}${filter2Query}`);
+                setData(response.data.listContent);
+            } else {
+                const response = await axiosWithInterceptorInstance.get(`/list/results/page/0?id=3878c122-7fb7-40fb-97b0-bfb66c8b35ca&cf_type=data&ft_id_2=9a7db9a7-9942-499a-a5ac-0a41a99b7b87&ft_status=active&dates_check=active&country_check=active&cluster_check=active&market_check=active&role_check=active&language-id=2&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}&${filterQuery}${filter2Query}`);
+                setData(response.data.listContent);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     };
+
+
     useEffect(() => {
 
         fetchData();
-    }, [ columnToFilter,expandedFiltersByLevel]);
+    }, [columnToFilter, expandedFiltersByLevel, isPushEnabled]);
+
+    async function checkAlreadySubscribed(filter: string) {
+        try {
+            //const response =  await axiosWithInterceptorInstance.get(`/dataset/my_subscriptions/${filter}`);
+            const response = await axiosWithInterceptorInstance.get<IExisting>(`/datalist/my_push_sub/page/0?cf_id=${filter}`);
+            //datalist/my_push_sub/page/0?cf_id_1
+            if (response.data.totalRows > 0) {
+                return true
+            } else {
+                return false
+            }
+
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    async function handleFilter(filter: string, title:string) {
+        if (await checkAlreadySubscribed(filter) === false) {
+            onModalDataChange('offeringModal_id', filter);
+            handleClose();
+        } else {
+            toast.error(`Please select another service, ${title} has already been subscribed`);
+        }
 
 
-    const handleFilter = (filter: string) => {
-        onModalDataChange('offeringModal_id', filter);
-        handleClose();
+
     };
     const toggleExpand = (filterKey: string, level: number, parrent: string) => {
 
@@ -226,7 +278,7 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
         </style>
             <Modal show={show} onHide={handleClose} dialogClassName="modal-90w">
                 <Modal.Header closeButton>
-                    <h5 className="modal-title"> Available Services</h5>
+                    <h5 className="modal-title"> Available Services </h5>
                 </Modal.Header>
                 <Modal.Body>
                     <Container fluid style={{ backgroundColor: '#f4f4f4' }}>
@@ -244,6 +296,20 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
                             </div>
                             <div className='col'>
                                 <Form onSubmit={handleSubmit}>
+                                    <ul className="nav nav-tabs">
+                                        {!isPushEnabled && <li className="nav-item">
+                                            <a className="nav-link active " href="#" onClick={() => changeScenario(false)} >Data</a>
+                                        </li>}
+                                        {isPushEnabled && <li className="nav-item">
+                                            <a className="nav-link " href="#" onClick={() => changeScenario(false)} >Data</a>
+                                        </li>}
+                                        {(window as any)["env"]["isPushEnabled"] && !isPushEnabled && <li className="nav-item">
+                                            <a className="nav-link " aria-current="page" href="#" onClick={() => changeScenario(true)} >Push</a>
+                                        </li>}
+                                        {(window as any)["env"]["isPushEnabled"] && isPushEnabled && <li className="nav-item">
+                                            <a className="nav-link active" aria-current="page" href="#" onClick={() => changeScenario(true)} >Push</a>
+                                        </li>}
+                                    </ul>
                                     <table className="table table-hover table-striped table-bordered table-sm">
                                         <thead>
                                             <tr>
@@ -313,7 +379,7 @@ const Offering: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataCha
                                             {data.map((item, index) => (
                                                 <tr key={index}>
                                                     <th scope="row">{index + 1}</th>
-                                                    <td> <button className="btn btn-primary text-end" onClick={() => handleFilter(item.cf_id)}>
+                                                    <td> <button className="btn btn-primary text-end" onClick={() => handleFilter(item.cf_id, item.cf_title)}>
                                                         +
                                                     </button></td>
                                                     <td>{Inner(item.sqlf_10)}</td>

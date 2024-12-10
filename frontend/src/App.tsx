@@ -24,18 +24,22 @@ import PrivateRoute from './routes/PrivateRoute';
 import { setAuthentication } from './store/reducers/auth';
 import DetailedService from './pages/profile/DetailService';
 import Requests from './pages/services/Requests';
-import CreateService from './pages/profile/CreateService';
+import CreatePushService from './pages/profile/CreatePushService';
+import CreateDataService from './pages/profile/CreateDataService';
 import MySubscriptions from './pages/services/MySubscriptions';
 import EditSubscription from './pages/profile/EditSubscription';
 import ConnectorSettings from './pages/services/ConnectorSettings';
 import EditRequestedService from './pages/profile/EditRequestedService';
 import ProvideData from './pages/dataExchange/ProvideData';
+import ProvideDataPush from './pages/dataExchange/ProvideDataPush';
 import EditDataEntity from './pages/profile/profileData/EditDataEntity';
 import CreateDataEntity from './pages/profile/profileData/CreateDataEntity';
 import ConsumeData from './pages/dataExchange/ConsumeData';
+import CreateDataEntityPush from './pages/profile/profileData/CreateDataEntityPush';
 import DetailDataEntity from './pages/profile/profileData/DetailDataEntity';
 import NewSubscription from './pages/profile/NewSubscription';
 import TimelineTab from './pages/profile/TimelineTab';
+import Catalog from './pages/services/Catalog';
 import {
   getAuthStatus,
 } from './utils/oidc-providers';
@@ -103,13 +107,15 @@ const App = () => {
             <Route path="/sub-menu-2" element={<Blank />} />
             <Route path="/sub-menu-1" element={<SubMenu />} />
             <Route path="/blank" element={<Blank />} />
+            <Route path="/catalog" element={<Catalog />} />
             <Route path="/crossPlatformServices" element={<CrossPlatformServices />} />
             <Route path="/myOfferedServices" element={<MyOfferedServices />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/editService" element={<EditService />} />
 
             <Route path="/detailedService" element={<DetailedService />} />
-            <Route path="/createService" element={<CreateService />} />
+            <Route path="/createDataService" element={<CreateDataService />} />
+            <Route path="/createPushService" element={<CreatePushService />} />
 
             <Route path="/requests" element={<Requests />} />
            
@@ -124,8 +130,10 @@ const App = () => {
             <Route path="/connectorSettings" element={<ConnectorSettings />} />
 
             <Route path="/provideData" element={<ProvideData />} />
+            <Route path="/provideDataPush" element={<ProvideDataPush />} />
             <Route path="/editDataEntity" element={<EditDataEntity />} />
             <Route path="/createDataEntity" element={<CreateDataEntity />} />
+            <Route path="/createDataEntityPush" element={<CreateDataEntityPush />} />
             <Route path="/consumeData" element={<ConsumeData />} />
             <Route path="/detailDataEntity" element={<DetailDataEntity />} />
             <Route path="/timeline" element={<TimelineTab isActive={true} />} />

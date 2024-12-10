@@ -20,13 +20,18 @@ export const MENU: IMenuItem[] = [
     icon: 'fas fa-tachometer-alt nav-icon',
     path: '/'
   },
+  {
+    name: i18n.t('menusidebar.label.Catalog'),
+    icon: 'fas fa-layer-group nav-icon',
+    path: '/catalog'
+  },
  
   {
     name: i18n.t('menusidebar.label.Services'),
     icon: 'far fa-caret-square-down nav-icon',
     children: [
       {
-        name: i18n.t('menusidebar.label.CrossPlatformServices'),
+        name: i18n.t('menusidebar.label.ServiceCategories'),
         icon: 'fas fa-server nav-icon',
         path: '/crossPlatformServices'
       },
@@ -60,6 +65,11 @@ export const MENU: IMenuItem[] = [
         name: i18n.t('menusidebar.label.ProvideData'),
         icon: 'fas fa-cloud-upload-alt nav-icon',
         path: '/provideData'
+      },
+      {
+        name: i18n.t('menusidebar.label.ProvideDataPush'),
+        icon: 'fas fa-share-square nav-icon',
+        path: '/provideDatapush'
       },
 
       {

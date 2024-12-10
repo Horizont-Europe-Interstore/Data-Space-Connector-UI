@@ -1,7 +1,8 @@
 {
   "name": "adminlte-3-react",
-  "version": "1.0.6",
+  "version": "1.2.0",
   "private": true,
+  "proxy": "https://smart-energy.eng.it/api",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -30,6 +31,7 @@
   },
   "dependencies": {
     "@cypress/webpack-preprocessor": "^6.0.1",
+    "@fortawesome/fontawesome-free": "^6.6.0",
     "@fortawesome/fontawesome-svg-core": "6.4.0",
     "@fortawesome/free-brands-svg-icons": "6.4.0",
     "@fortawesome/free-regular-svg-icons": "6.4.0",
@@ -54,6 +56,7 @@
     "oidc-client-ts": "2.2.2",
     "react": "18.2.0",
     "react-bootstrap": "^1.6.1",
+    "react-clamp-lines": "^3.0.3",
     "react-dom": "18.2.0",
     "react-i18next": "12.2.0",
     "react-icons": "^5.0.1",

@@ -37,7 +37,9 @@ const Profile = () => {
     axiosWithInterceptorInstance.get(`/user/current`)
       .then(response => {
         const data = response.data
-
+        console.log("useri id :")
+        console.log(response.data.id)
+        localStorage.setItem("uid", response.data.id);
         setPageInfo({
           username: data.username,
           email: data.email

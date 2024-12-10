@@ -52,12 +52,21 @@ interface Data_catalog_data_offerings {
     user_offering: User_offering;
     data_catalog_data_requests_obj: Data_catalog_data_requests;
     file_schema: string;
-    user_offering_obj:User_offering_obj
+    user_offering_obj: User_offering_obj
 }
 interface User_offering_obj {
     ecc_url: string;
+    data_app_url: string;
 }
+interface Provider_obj {
 
+    ecc_url: string,
+    broker_url: string,
+    id: string,
+    provider_fiware_url: string,
+    ed_api_url: string
+
+}
 
 interface Data_send {
     id: string;
@@ -70,24 +79,38 @@ interface Data_send {
     data_catalog_data_offerings_obj: Data_catalog_data_offerings;
     data_catalog_data_offerings_id: string;
     description: string;
+    provider_obj:Provider_obj 
 
 }
 
 interface ApiResponse {
     data_send_obj: Data_send;
 }
+
+/* interface ApiResponse3 {
+    data_send_obj: Data_send;
+} */
 const EditDataEntity = () => {
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const id = queryParams.get('id');
     const [data, setData] = useState<Data_send>();
+    //const [data2, setData2] = useState<Data_send>();
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axiosWithInterceptorInstance.get<ApiResponse>(`/dataset/data_consumed/${id}`);
-
+                //vecchia chiamata 
+/*                 const response2 = await axiosWithInterceptorInstance.get<ApiResponse3>(`/dataset/data_consumed/${id}`);
+                console.log("dati data_consumed");
+                console.log(response2.data);
+                setData2(response2.data.data_send_obj); */
+                // sostituita con questa per ottenere i dati di chi ha fatto upload
+                const response = await axiosWithInterceptorInstance.get<ApiResponse>(`/dataset/data_provided/${id}`);
+                console.log("dati da consumare get");
+                console.log(response.data.data_send_obj);
+                console.log(response.data);
                 setData(response.data.data_send_obj);
             } catch (error) {
                 console.error('Error fetching data: ', error);
@@ -104,20 +127,42 @@ const EditDataEntity = () => {
 
         try {
             setIsLoading(true);
+            console.log("dati scaricati")
+            console.log(data?.provider_obj)
             let apiAdd: string = "";
             let apiAdd2: string = "";
-            let apiAdd3: string = "";
-            if (data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.ecc_url && data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.broker_url && data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.data_app_url) {
+            //let apiAdd3: string = "";
+            console.log("dato che attingo")
+            console.log(data)
+            // old code
+            // if (data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.ecc_url && data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.broker_url && data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.data_app_url) {
 
-                apiAdd = data?.data_catalog_data_offerings_obj.user_offering_obj.ecc_url
-                apiAdd2 = data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.broker_url
-                apiAdd3 = data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.data_app_url
-                console.log(apiAdd + apiAdd2 + apiAdd3 + "ooooooooo")
+            //     apiAdd = data?.data_catalog_data_offerings_obj.user_offering_obj.ecc_url
+            //     apiAdd2 = data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.broker_url
+            //     apiAdd3 = data?.data_catalog_data_offerings_obj.data_catalog_data_requests_obj.onenet_consumer_obj.data_app_url
+            //     console.log(apiAdd + apiAdd2 + apiAdd3 + "ooooooooo")
+
+            // }
+            if (data?.provider_obj.ecc_url) {
+            
+                apiAdd = data?.provider_obj.ecc_url; //"https://ecc-provider:8889/data"                
+                apiAdd2 = data?.provider_obj.broker_url; //è vuoto non so a cosa serva ne come riempirlo 
+                // apiAdd3 = data2?.data_catalog_data_offerings_obj.user_offering_obj.data_app_url; //"https://be-dataapp-provider:8083" 
+                console.log("dati chiamanti ad apiurl")
+                console.log(apiAdd )
+                console.log(apiAdd2)
+                //console.log(apiAdd3 )
 
             }
-            const apiRetrived = await RetrieveLocalApi()
 
-            const response = await axiosWithInterceptorInstance.get<ApiResponse2>(`${apiRetrived}/entity?id=${data?.id}&provider_ecc=${btoa(apiAdd)}&consumer_fiware=${btoa(apiAdd2)}&consumer_data_app=${btoa(apiAdd3)}`,
+            //occhio a qule servizio chiamo qui per ottenre il dettaglio e quello che chiamo per download data_consumed
+            const settingsResponse = await RetrieveLocalApi();
+            const apiRetrived = settingsResponse.ed_api_url;
+            const dataAppUrl = settingsResponse.data_app_url;
+            console.log("ho premuto download  e questo è l'url :")
+            console.log(`${apiRetrived}/entity?id=${data?.id}&provider_ecc=${btoa(apiAdd)}&consumer_fiware=${btoa(apiAdd2)}&consumer_data_app=${btoa(dataAppUrl)}`)
+            const response = await axiosWithInterceptorInstance.get<ApiResponse2>(`${apiRetrived}/entity?id=${data?.id}&provider_ecc=${btoa(apiAdd)}&consumer_fiware=${btoa(apiAdd2)}&consumer_data_app=${btoa(dataAppUrl)}`,
+            
                 {
                     data: {},
 
@@ -125,7 +170,11 @@ const EditDataEntity = () => {
                         'Content-Type': 'application/json'
                     }
                 });
-            if (data) {
+                console.log("risposta")
+                console.log(response)
+                console.log("dato di richiesta ")
+                console.log(data)
+           if (data) {
 
                 const fileData: string = response.data.filedata;
                 const base64Response: string = fileData.split(';base64,').pop()!;

@@ -2,12 +2,12 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/interactive-supports-focus */
-import React, {useEffect, useState} from 'react';
-import {NavLink, useNavigate, useLocation, Location} from 'react-router-dom';
-import {useTranslation} from 'react-i18next';
-import {IMenuItem} from '@app/modules/main/menu-sidebar/MenuSidebar';
+import React, { useEffect, useState } from 'react';
+import { NavLink, useNavigate, useLocation, Location } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { IMenuItem } from '@app/modules/main/menu-sidebar/MenuSidebar';
 
-const MenuItem = ({menuItem}: {menuItem: IMenuItem}) => {
+const MenuItem = ({ menuItem }: { menuItem: IMenuItem }) => {
   const [t] = useTranslation();
   const [isMenuExtended, setIsMenuExtended] = useState(false);
   const [isExpandable, setIsExpandable] = useState(false);
@@ -44,6 +44,17 @@ const MenuItem = ({menuItem}: {menuItem: IMenuItem}) => {
   };
 
   useEffect(() => {
+
+   if ((window as any)["env"]["isPushEnabled"] === false){
+      if (menuItem && menuItem.children){
+        console.log("entro qui")
+      menuItem.children = menuItem.children.filter(elemento => elemento.name !== "Provide data push");
+    }
+    }
+    console.log(menuItem.children)
+  }, []);
+
+  useEffect(() => {
     if (location) {
       calculateIsActive(location);
     }
@@ -64,12 +75,11 @@ const MenuItem = ({menuItem}: {menuItem: IMenuItem}) => {
   return (
     <li className={`nav-item${isMenuExtended ? ' menu-open' : ''}`}>
       <a
-        className={`nav-link${
-          isMainActive || isOneOfChildrenActive ? ' active' : ''
-        }`}
+        className={`nav-link${isMainActive || isOneOfChildrenActive ? ' active' : ''
+          }`}
         role="link"
         onClick={handleMainMenuAction}
-        style={{cursor: 'pointer'}}
+        style={{ cursor: 'pointer' }}
       >
         <i className={`${menuItem.icon}`} />
         <p>{t<string>(menuItem.name)}</p>
@@ -80,7 +90,7 @@ const MenuItem = ({menuItem}: {menuItem: IMenuItem}) => {
         menuItem &&
         menuItem.children &&
         menuItem.children.map((item) => (
-          <ul key={item.name} className="nav nav-treeview" style={{marginLeft: "20px"}}>
+          <ul key={item.name} className="nav nav-treeview" style={{ marginLeft: "20px" }}>
             <li className="nav-item">
               <NavLink className="nav-link" to={`${item.path}`}>
                 <i className={`${item.icon}`} />

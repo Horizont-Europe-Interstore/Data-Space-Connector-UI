@@ -13,6 +13,8 @@ import {
 } from '@app/utils/oidc-providers';
 import { Form, InputGroup } from 'react-bootstrap';
 import setGlobalHeader from '@app/components/helpers/SetGlobalHeader';
+import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
+
 const imageUrl = "./img/map-labs.jpg";
 
 const Login = () => {
@@ -21,7 +23,27 @@ const Login = () => {
 
   const navigate = useNavigate();
   const [t] = useTranslation();
+//old login 
+  // const login = async (email: string, password: string) => {
+  //   try {
+  //     setAuthLoading(true);
+  //     const response = await authLogin(email, password);
+  //     localStorage.setItem('token', response.accessToken);
+  //     localStorage.setItem("email", email)
+  //     setGlobalHeader()
 
+  //     dispatch(setAuthentication(response as any));
+  //     toast.success('Login is succeed!');
+  //     setAuthLoading(false);
+  //     // dispatch(loginUser(token));
+  //     navigate('/');
+  //   } catch (error: any) {
+  //     setAuthLoading(false);
+  //     toast.error(error.message || 'Failed');
+  //   }
+  // };
+
+  //new login with 
   const login = async (email: string, password: string) => {
     try {
       setAuthLoading(true);
@@ -29,17 +51,30 @@ const Login = () => {
       localStorage.setItem('token', response.accessToken);
       localStorage.setItem("email", email)
       setGlobalHeader()
-
       dispatch(setAuthentication(response as any));
-      toast.success('Login is succeed!');
-      setAuthLoading(false);
-      // dispatch(loginUser(token));
-      navigate('/');
-    } catch (error: any) {
-      setAuthLoading(false);
-      toast.error(error.message || 'Failed');
-    }
-  };
+
+      axiosWithInterceptorInstance.get(`/user/current`)
+        .then(response => {
+          const data = response.data
+          console.log("useri id :")
+          console.log(response.data.id)
+          localStorage.setItem("uid", response.data.id);
+          toast.success('Login is succeed!');
+          setAuthLoading(false);
+          // dispatch(loginUser(token));
+          navigate('/');
+        })
+        .catch(error => {
+          console.error('Error fetching media:', error);
+        });
+    
+  
+  } catch (error: any) {
+    setAuthLoading(false);
+    toast.error(error.message || 'Failed');
+  }
+};
+
   const { handleChange, values, handleSubmit, touched, errors } = useFormik({
     initialValues: {
       email: '',

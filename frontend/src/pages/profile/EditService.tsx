@@ -8,7 +8,8 @@ import React, { useState, useEffect, ChangeEvent } from 'react';
 import axios from 'axios';
 import { removeObj } from '@app/components/helpers/RemoveOBJ';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
-
+//modifica pasquale 
+//classe modificata solo nell'interfaccia per ricevere i nuovi dati 
 
 interface Data_catalog_category {
   code: string;
@@ -48,6 +49,8 @@ interface Data_catalog_data_offerings {
   profile_description: string;
   active_to_enable: number;
   active_from_enable: number;
+  type: string;
+  push_uri: string;
 }
 
 
@@ -59,6 +62,7 @@ const EditService = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const id = queryParams.get('id');
+  const whoIsCalling = queryParams.get('whoIsCalling')
   const [data, setData] = useState<Data_catalog_data_offerings | null>(null);
   const [isLoading1, setIsLoading1] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
@@ -137,7 +141,24 @@ const EditService = () => {
 
       try {
         const response = await axiosWithInterceptorInstance.post('/dataset/my_offered_services', removeObj(requestBody));
-        window.location.href = '/myOfferedServices'
+        if (whoIsCalling === "catalog") {
+          console.log(data)
+          if (data.type === "push") {
+            window.location.href = '/catalog?type=push'
+          }else{
+            window.location.href = '/catalog'
+          }
+          
+        } else {
+          console.log(data.type)
+          if (data.type === "push") {
+            window.location.href = '/myOfferedServices?type=push'
+          }else{
+            window.location.href = '/myOfferedServices'
+          }
+          
+        }
+
       } catch (error) {
         console.error('Error saving data: ', error);
       } finally {
@@ -395,6 +416,28 @@ const EditService = () => {
                   <Input type="text" name="categoryName" id="categoryName" placeholder={data?.data_catalog_business_object_obj.data_catalog_service_obj.data_catalog_category_obj.name} disabled />
                 </FormGroup>
               </Col>
+            </Row>
+          </ListGroup.Item>
+           <ListGroup.Item>
+            <Row form>
+              {data?.type === "push" && <Col md={6}>
+                <FormGroup>
+                  <Label for="serviceCode">Type</Label>
+                  <Input type="text" name="categoryCode" id="categoryCode" placeholder={data?.type} disabled />
+                </FormGroup>
+              </Col>}
+             {data?.type !== "push" && <Col >
+                <FormGroup>
+                  <Label for="serviceCode">Type</Label>
+                  <Input type="text" name="categoryCode" id="categoryCode" placeholder={data?.type} disabled />
+                </FormGroup>
+              </Col>}
+              {data?.type === "push" &&<Col md={6}>
+                <FormGroup>
+                  <Label for="serviceName">Push URI</Label>
+                  <Input type="text" name="categoryName" id="categoryName" placeholder={data?.push_uri} disabled />
+                </FormGroup>
+              </Col>}
             </Row>
           </ListGroup.Item>
         </ListGroup>

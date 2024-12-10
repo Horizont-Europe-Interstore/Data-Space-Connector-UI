@@ -25,7 +25,8 @@ interface ITableData {
     profile_selector: string;
     title: string;
     cf_profile_selector: string;
-    created_on: string;
+    created_on_offer: string;
+    cf_type:string
 }
 interface IFilter {
     id: string | null;
@@ -35,7 +36,7 @@ interface IFilter {
     parrent: IFilter;
     children: IFilter[];
 }
-const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChange }) => {
+const ServicePush: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChange }) => {
     const [data, setData] = useState<ITableData[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
@@ -123,7 +124,22 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
                 filter = filter + `&${encodeURIComponent("users_group")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
             }
             try {
-                const response = await axiosWithInterceptorInstance.get(`/datalist/my_offered_services/page/${currentPage - 1}?cf_type=data&${filter}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
+                //modifica Pasquale 
+                //Classe per creare dati da associare ad un offered service
+                // qeusta modifica permette di utilizzare il mio servizio creato su postman 
+                // che restituisce le subscription dell'utente chiamatnte , in stato accept e riferite a offered service di tipo push 
+                // ho cambiato il json di ritorno rendendolo compatibile con questo componente di react che prende in ingresso una offered service e la rende selezionabile 
+                // per associargli un determinato dato 
+                //vecchio servizio
+                // const response = await axiosWithInterceptorInstance.get(`/datalist/my_offered_services/page/${currentPage - 1}?${filter}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
+                //nuovo servizio
+                // const response = await axiosWithInterceptorInstance.get(`/datalist/my_push_sub/page/${currentPage - 1}?${filter}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
+                const response = await axiosWithInterceptorInstance.get(`/datalist/my_push_sub/page/${currentPage - 1}?status=accept&cf_type=push`);
+               // scenario push/ subscription/listpagingsubscriptio
+                // {{scheme}}://{{host}}/api/datalist/my_push_sub/page/0?status=accept&cf_type=push
+
+
+                console.log(response);
                 setData(response.data.listContent);
                 setTotalPages(response.data.totalPages);
                 setPageSize(response.data.pageSize)
@@ -249,7 +265,7 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
                                                     </button></td>
                                                     <td>{Inner(item.category)}</td>
                                                     <td>{item.title}</td>
-                                                    <td>{item.created_on}</td>
+                                                    <td>{item.created_on_offer}</td>
                                                     <td>{item.profile_description}</td>
                                                 </tr>
                                             ))}
@@ -267,4 +283,4 @@ const Service: React.FC<CategorizeProps> = ({ show, handleClose, onModalDataChan
     );
 }
 
-export default Service;
+export default ServicePush;

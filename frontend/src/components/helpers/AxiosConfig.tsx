@@ -13,6 +13,7 @@ const axiosWithInterceptorInstance = axios.create({
 });
 
 axiosWithInterceptorInstance.interceptors.response.use((response) => response, (error) => {
+  console.log("dentro interceptor", error)
   if (error.response.status === 401) {
     console.error('Unauthorized: You need to login!');
     store.dispatch(setAuthentication(undefined));

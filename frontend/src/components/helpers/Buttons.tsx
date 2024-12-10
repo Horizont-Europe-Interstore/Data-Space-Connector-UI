@@ -1,5 +1,9 @@
-const New = () => {
-  window.location.href = '/createService'
+const NewPushService = () => {
+  window.location.href = '/createPushService'
+};
+
+const NewDataService = () => {
+  window.location.href = '/createDataService'
 };
 
 const DetailService = (id: string) => {
@@ -7,8 +11,8 @@ const DetailService = (id: string) => {
 
 };
 
-const EditService = (id: string) => {
-  window.location.href = `/editService?id=${id}`
+const EditService = (id: string, whoIsCalling: string) => {
+  window.location.href = `/editService?id=${id}&whoIsCalling=${whoIsCalling}`
 };
 
 const EditRequest = (id: string) => {
@@ -22,15 +26,19 @@ const RequestsOnService = (id: string) => {
 const EditSubscription = (id: string) => {
   window.location.href = `/editSubscription?id=${id}`
 };
-const NewSubscription = () => {
-  window.location.href = `/newSubscription`
+const NewSubscription = (type: string) => {
+  window.location.href = `/newSubscription?type=${type}`
 };
 
 const EditDataEntity = (id: string) => {
   window.location.href = `/editDataEntity?id=${id}`
 };
+
 const NewDataEntity = () => {
   window.location.href = `/createDataEntity`
+};
+const NewDataEntityPush = () => {
+  window.location.href = `/createDataEntityPush`
 };
 
 const DetailDataEntity = (id: string) => {
@@ -41,4 +49,4 @@ const DetailDataEntity = (id: string) => {
 
 
 
-export { EditService, EditRequest, RequestsOnService, DetailService, New, EditSubscription, EditDataEntity, NewDataEntity, DetailDataEntity, NewSubscription }; 
+export { EditService, EditRequest, RequestsOnService, DetailService, NewPushService, NewDataService, EditSubscription, EditDataEntity, NewDataEntity, NewDataEntityPush, DetailDataEntity, NewSubscription }; 

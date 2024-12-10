@@ -279,13 +279,13 @@ const CrossPlatformServices: React.FC = () => {
   };
   return (
     <Container fluid>
-      <h2><i className="fas fa-server nav-icon" ></i><b> Cross platform services</b></h2>
-      <h5>Navigate to Cross Platform Services</h5>
+      <h2><i className="fas fa-server nav-icon" ></i><b> Service Categories</b></h2>
+      <h5>Navigate Service Categories</h5>
       <Row style={{ paddingTop: "30px", flexWrap: "nowrap", display: "flex" }}>
         <Col md={2} >
           <Card>
-            <h5 style={{ paddingLeft: "10px", paddingTop: "10px" }}><b>Cross Platform Services' Categories</b></h5>
-            <h6 style={{ paddingLeft: "10px" }}>Navigate & Filter Business Objects by Category & Service categorization tree </h6>
+            <h5 style={{ paddingLeft: "10px", paddingTop: "10px" }}><b>Categories</b></h5>
+            <h6 style={{ paddingLeft: "10px" }}>Navigate & Filter by Category tree </h6>
             {renderButtonGroup(filters)}
             <div style={{ padding: "15px" }}>
               {renderActiveFilter()}

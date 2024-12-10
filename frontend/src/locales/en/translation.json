@@ -76,9 +76,10 @@
   "menusidebar": {
     "label": {
       "dashboard": "Dashboard",
+      "Catalog":"Catalog",
       "profile": "Profile",
       "blank": "Blank",
-      "CrossPlatformServices": "Cross platform services",
+      "ServiceCategories": "Service Categories",
       "mainMenu": "Main Menu",
       "subMenu": "Sub Menu",
       "Services": "Services",
@@ -87,6 +88,7 @@
       "Requests": "Requests",
       "MySubscriptions": "My subscriptions",
       "ProvideData": "Provide data",
+      "ProvideDataPush": "Provide data push",
       "ConsumeData": "Consume data",
       "CompletedDataExchanges": "Completed data exchanges",
       "DataExchangesTimeline": "Data exchanges timeline",
