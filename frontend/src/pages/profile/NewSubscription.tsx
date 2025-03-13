@@ -1,10 +1,8 @@
-import axios from 'axios';
 import { format } from 'date-fns';
-import { Container, Row, Col, Button, FormGroup, Label, Input } from 'reactstrap';
+import { Container, Row, Col, FormGroup, Label } from 'reactstrap';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Form from 'react-bootstrap/Form';
-import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import Offering from '../modals/Offering_NewSubscription';

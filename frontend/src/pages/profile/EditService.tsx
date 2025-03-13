@@ -1,11 +1,9 @@
-import { Container, Row, Col, Button, FormGroup, Label, Input } from 'reactstrap';
+import { Container, Row, Col, FormGroup, Label, Input } from 'reactstrap';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
-import Form from 'react-bootstrap/Form';
 import Dropdown from 'react-bootstrap/Dropdown';
-import { Await, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import axios from 'axios';
 import { removeObj } from '@app/components/helpers/RemoveOBJ';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 //modifica pasquale 
@@ -51,6 +49,8 @@ interface Data_catalog_data_offerings {
   active_from_enable: number;
   type: string;
   push_uri: string;
+  topic: string;
+  updating_frequency: number;
 }
 
 
@@ -145,18 +145,18 @@ const EditService = () => {
           console.log(data)
           if (data.type === "push") {
             window.location.href = '/catalog?type=push'
-          }else{
+          } else {
             window.location.href = '/catalog'
           }
-          
+
         } else {
           console.log(data.type)
           if (data.type === "push") {
             window.location.href = '/myOfferedServices?type=push'
-          }else{
+          } else {
             window.location.href = '/myOfferedServices'
           }
-          
+
         }
 
       } catch (error) {
@@ -418,7 +418,7 @@ const EditService = () => {
               </Col>
             </Row>
           </ListGroup.Item>
-           <ListGroup.Item>
+          <ListGroup.Item>
             <Row form>
               {data?.type === "push" && <Col md={6}>
                 <FormGroup>
@@ -426,13 +426,13 @@ const EditService = () => {
                   <Input type="text" name="categoryCode" id="categoryCode" placeholder={data?.type} disabled />
                 </FormGroup>
               </Col>}
-             {data?.type !== "push" && <Col >
+              {data?.type !== "push" && <Col >
                 <FormGroup>
                   <Label for="serviceCode">Type</Label>
                   <Input type="text" name="categoryCode" id="categoryCode" placeholder={data?.type} disabled />
                 </FormGroup>
               </Col>}
-              {data?.type === "push" &&<Col md={6}>
+              {data?.type === "push" && <Col md={6}>
                 <FormGroup>
                   <Label for="serviceName">Push URI</Label>
                   <Input type="text" name="categoryName" id="categoryName" placeholder={data?.push_uri} disabled />
@@ -496,7 +496,30 @@ const EditService = () => {
 
         </ListGroup>
       </Card>
+      <Card >
+        <h3 className="list-group-item-heading" style={{ paddingLeft: "20px", paddingTop: "20px" }}> <b>NATS parameters</b></h3>
+        <h6 className="list-group-item-heading" style={{ paddingLeft: " 20px" }}>Select topic and updating frequency for the NATS plugin</h6>
+        <ListGroup variant="flush">
+          <ListGroup.Item>
+            <Row form>
+              <Col md={6}>
+                <FormGroup>
+                  <Label for="serviceCode">Topic</Label>
 
+                  <Input type="text" name="topic" id="topic" value={data?.topic} placeholder="Enter NATS topic" onChange={(e) => handleChange('topic', e.target.value)} />
+                </FormGroup>
+              </Col>
+              <Col md={6}>
+                <FormGroup>
+                  <Label for="serviceName">Updating Frequency (60 is the default value)</Label>
+                  <Input type="text" name="updating_frequency" id="updating_frequency" value={data?.updating_frequency} placeholder="Enter updating frequency" onChange={(e) => handleChange('updating_frequency', e.target.value)} />
+                </FormGroup>
+              </Col>
+            </Row>
+          </ListGroup.Item>
+        </ListGroup>
+
+      </Card>
 
 
       <Card >

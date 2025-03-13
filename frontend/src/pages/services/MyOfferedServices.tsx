@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosError } from 'axios';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -16,13 +15,12 @@ import checkLevel from '@app/components/helpers/CheckLevel';
 import { useDispatch } from 'react-redux';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
-import { bool } from 'yup';
 import { useLocation } from 'react-router-dom';
 const API_URL_FILTERS = "datalist/left-grouping/my_offered_services";
 const API_URL_DATA_PUSH = "/datalist/my_push_offered_services/page/"; // utilizzato il nuovo solo xke nel vecchio mancano i campi type e url se si aggiungono in teoria dovrebbe funzionare lo stesso 
-const API_URL_DATA = "/datalist/my_offered_services/page/";
+//const API_URL_DATA = "/datalist/my_offered_services/page/";
 interface IFilterValues {
-  category: string;
+  category: string; 
   cf_id: string;
   title: string;
   created_on: string;

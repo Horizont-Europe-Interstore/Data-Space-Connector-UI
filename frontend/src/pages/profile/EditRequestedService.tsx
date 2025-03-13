@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Container, Row, Col, Button, FormGroup, Label, Input } from 'reactstrap';
+import { Container,Label } from 'reactstrap';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Form from 'react-bootstrap/Form';
-import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { removeObj } from '@app/components/helpers/RemoveOBJ';
@@ -51,7 +49,7 @@ interface Data_catalog_data_offerings {
     name: string;
     id: string;
     title: string;
-
+    type:string;
     data_catalog_business_object_obj: Data_catalog_business_object;
 }
 
@@ -78,6 +76,7 @@ interface DataCatalogDataRequests {
 
     };
     status: string;
+   
 }
 
 interface ApiResponse {
@@ -243,15 +242,24 @@ const DetailService = () => {
 
 
                     <div className='row' >
-                        <div className='col' >
+                       { data.data_catalog_data_offerings_obj.type ==="push" &&<div className='col' >
                             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Your offering Id</Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder={data.id}
+                                    placeholder={data.data_catalog_data_offerings_obj.id} 
                                     aria-label="Disabled input example"
                                     readOnly
                                 /></ListGroup.Item>
-                        </div>
+                        </div>}
+                        { data.data_catalog_data_offerings_obj.type ==="data" &&<div className='col' >
+                            <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }} ><Label for="title">Your offering Id</Label>
+                                <Form.Control
+                                    type="text"
+                                    placeholder={data.id} 
+                                    aria-label="Disabled input example"
+                                    readOnly
+                                /></ListGroup.Item>
+                        </div>}
                         <div className='col'>
                             <ListGroup.Item style={{ border: 'none', boxShadow: 'none' }}><Label for="title">Created on</Label>
                                 <Form.Control

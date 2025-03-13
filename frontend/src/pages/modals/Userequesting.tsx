@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Modal, Container, Card } from 'react-bootstrap';
 import Pagination from '@app/components/helpers/Pagination';
 import Button from 'react-bootstrap/Button';

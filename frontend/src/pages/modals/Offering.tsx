@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosError } from 'axios';
 import { Modal, Container, Card, Button } from 'react-bootstrap';
 import Inner from '@app/components/helpers/InnerHtml';
 import checkLevel from '@app/components/helpers/CheckLevel';

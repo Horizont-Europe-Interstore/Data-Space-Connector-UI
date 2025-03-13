@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosError } from 'axios';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -47,6 +46,7 @@ const CrossPlatformServices: React.FC = () => {
   const [filters, setFilters] = useState<IFilter[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
   type ExpandedFiltersByLevel = { [level: number]: string | null };
   const [expandedFiltersByLevel, setExpandedFiltersByLevel] = useState<ExpandedFiltersByLevel>({});
   const [filterValues, setFilterValues] = useState<IFilterValues>({
@@ -202,10 +202,10 @@ const CrossPlatformServices: React.FC = () => {
       if (filter2Query) {
         filterQuery2 = filter2Query;
       }
-      const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA}${currentPage - 1}?${filterQuery}${filterQuery2}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
+      const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize:number }>(`${API_URL_DATA}${currentPage - 1}?${filterQuery}${filterQuery2}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
       setData(response.data.listContent);
       setTotalPages(response.data.totalPages);
-
+      setPageSize(response.data.pageSize)
     } catch (error: unknown) {
 
       console.error('Error fetching data:', error);
@@ -369,7 +369,7 @@ const CrossPlatformServices: React.FC = () => {
                 </tr>
                 {data.map((item, index) => (
                   <tr key={index}>
-                    <th scope="row">{(((currentPage - 1)) * 10) + index + 1}</th>
+                    <th scope="row">{(((currentPage - 1)) * pageSize) + index + 1}</th>
                     <td>
                       <Button variant="outline-light" className="btn btn-primary" onClick={() => DetailService(item.cross_platform_service_id)} data-bs-toggle="tooltip" data-placement="top" title="View cross-platform service details">
                         <i className="fa fa-search"></i>

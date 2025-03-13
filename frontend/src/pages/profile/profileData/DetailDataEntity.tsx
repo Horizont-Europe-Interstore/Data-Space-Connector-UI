@@ -3,8 +3,7 @@ import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Form from 'react-bootstrap/Form';
 import { useLocation } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
-import axios, { AxiosError } from 'axios';
+import  { useState, useEffect } from 'react';
 import { RetrieveLocalApi } from '@app/components/helpers/RetrieveLocalApi';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 
@@ -53,6 +52,7 @@ interface Data_catalog_data_offerings {
     data_catalog_data_requests_obj: Data_catalog_data_requests;
     file_schema: string;
     user_offering_obj: User_offering_obj
+    type:string;
 }
 interface User_offering_obj {
     ecc_url: string;
@@ -68,6 +68,19 @@ interface Provider_obj {
 
 }
 
+interface Company_obj {
+    name:string;
+    
+
+}
+
+
+interface User_obj {
+    company_obj:Company_obj;
+    username:string;
+
+}
+
 interface Data_send {
     id: string;
     title: string;
@@ -80,7 +93,7 @@ interface Data_send {
     data_catalog_data_offerings_id: string;
     description: string;
     provider_obj:Provider_obj 
-
+    user_obj:User_obj
 }
 
 interface ApiResponse {
@@ -274,6 +287,9 @@ const EditDataEntity = () => {
                     <ListGroup.Item><Label for="title">Profile Description</Label>
                         <Input type="text" name="title" id="title" value={data?.data_catalog_data_offerings_obj.profile_description} />
                     </ListGroup.Item>
+                   {data?.data_catalog_data_offerings_obj.type==="push"  && <ListGroup.Item><Label for="title">Data provider</Label>
+                        <Input type="text" name="title" id="title" value={ data?.user_obj.company_obj.name + "  "+data?.user_obj.username } />
+                    </ListGroup.Item>}
                 </ListGroup>
 
                 <div className='row' >

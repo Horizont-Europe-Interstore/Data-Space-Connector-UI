@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosError } from 'axios';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -8,9 +7,6 @@ import Categories from '../modals/Categories';
 import Service from '../modals/Service';
 import BusinnesObject from '../modals/BusinnesObject';
 import { EditService, RequestsOnService } from '@app/components/helpers/Buttons';
-//import Truncate from 'react-truncate-string'
-//import Truncate from 'react-truncate';
-//import TextTruncate from 'react-text-truncate';
 import Inner from '@app/components/helpers/InnerHtml';
 import Pagination from '@app/components/helpers/Pagination';
 import checkLevel from '@app/components/helpers/CheckLevel';

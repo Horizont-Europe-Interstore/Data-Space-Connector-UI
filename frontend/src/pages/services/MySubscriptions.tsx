@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosError } from 'axios';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -17,7 +16,7 @@ import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
 import { useLocation } from 'react-router-dom';
 const API_URL_FILTERS = "/datalist/left-grouping/my_subscriptions?gf_type=data";
-const API_URL_DATA = "/datalist/my_subscriptions/page/";
+//const API_URL_DATA = "/datalist/my_subscriptions/page/";
 const API_URL_DATA_PUSH = "/datalist/my_push_sub/page/";
 //const API_URL_DATA_PUSH = "/datalist/my_subscriptions/page/";
 
@@ -62,7 +61,7 @@ interface ITableData {
     my_subscription_id: string;
     category_code: string;
     cf_name: string;
-    cf_username: string;
+    cf_username: string; 
 }
 const MySubscriptions: React.FC = () => {
     const location = useLocation();
@@ -116,6 +115,7 @@ const MySubscriptions: React.FC = () => {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
+    const [pageSize, setPageSize] = useState(20);
     const [columnToFilter, setcolumnToFilter] = useState({ name: '', value: '' });
     const [categoryOrdering, setCategoryOrdering] = useState("");
     const [titleOrdering, setTitleOrdering] = useState("");
@@ -303,15 +303,15 @@ const MySubscriptions: React.FC = () => {
             setTotalPages(response.data.totalPages); */
 
             if (isPushEnabled) {
-                const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA_PUSH}${currentPage - 1}?cf_type=push&${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
+                const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize:number }>(`${API_URL_DATA_PUSH}${currentPage - 1}?cf_type=push&${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
                 setData(response.data.listContent);
                 setTotalPages(response.data.totalPages);
-                //setPageSize(response.data.pageSize)
+                setPageSize(response.data.pageSize)
             } else {
-                const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA_PUSH}${currentPage - 1}?cf_type=data&${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
+                const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize:number }>(`${API_URL_DATA_PUSH}${currentPage - 1}?cf_type=data&${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
                 setData(response.data.listContent);
                 setTotalPages(response.data.totalPages);
-                //setPageSize(response.data.pageSize)
+                setPageSize(response.data.pageSize)
             }
         } catch (error: unknown) {
             console.error('Error fetching data:', error);
@@ -596,7 +596,7 @@ const MySubscriptions: React.FC = () => {
 
                                 {data.map((item, index) => (
                                     <tr key={index}>
-                                        <th scope="row">{(((currentPage - 1)) * 10) + index + 1}</th>
+                                        <th scope="row">{(((currentPage - 1)) * pageSize) + index + 1}</th>
                                         <td>
                                             <Button variant="outline-light" className="btn btn-primary" onClick={() => EditSubscription(item.my_subscription_id)}>
                                                 <i className="fas fa-pencil-alt"></i>

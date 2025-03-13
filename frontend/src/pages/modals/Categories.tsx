@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Container, Row, Card } from 'react-bootstrap';
+import { Modal, Container, Row } from 'react-bootstrap';
 import Pagination from '@app/components/helpers/Pagination';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';

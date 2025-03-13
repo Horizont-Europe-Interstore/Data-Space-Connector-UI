@@ -71,7 +71,7 @@ const TimelineTab = ({ isActive }: { isActive: boolean }) => {
       "eccUrl": `${dataURLs.ecc_url}`
     };
     try {
-      const response = await axios.post<ApiResponseReg>(`${window.location.protocol}//${window.location.host}/data-app-consumer/registration`, requestBody); // please leave this axios call
+      const response = await axios.post<ApiResponseReg>(`${window.location.protocol}//${window.location.host}/${(window as any)["env"]["dataAppName"]}/registration`, requestBody); // please leave this axios call
       if (response.data.smartContractAddress) {
 
         setCheckResults(prevResults => ({

@@ -584,7 +584,7 @@ const Requests: React.FC = () => {
                                         <td>{Inner(item.cf_type)}</td>
                                     </tr>
                                 ))}
-                            </tbody>
+                            </tbody> 
                         </Table>
                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                             <Pagination totalPages={totalPages} paginate={paginate} currentPage={currentPage} />

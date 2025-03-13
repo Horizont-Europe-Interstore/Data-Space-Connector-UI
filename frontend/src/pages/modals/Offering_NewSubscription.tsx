@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Container, Row, Button, Card, Form } from 'react-bootstrap';
+import { Modal, Container, Button, Card, Form } from 'react-bootstrap';
 import Inner from '@app/components/helpers/InnerHtml';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';

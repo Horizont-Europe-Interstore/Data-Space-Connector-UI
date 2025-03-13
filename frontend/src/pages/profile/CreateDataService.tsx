@@ -1,9 +1,9 @@
-import { Container, Row, Col, Button, FormGroup, Label, Input } from 'reactstrap';
+import { Container, Row, Col,  FormGroup, Label, Input } from 'reactstrap';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Dropdown from 'react-bootstrap/Dropdown';
 import { useLocation } from 'react-router-dom';
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useState,  ChangeEvent } from 'react';
 import BusinnesObject from '../modals/BusinnesObject_CreateService';
 import { toast } from 'react-toastify';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
@@ -114,6 +114,8 @@ interface DataCatalogDataOfferings {
   active_to: string;
   active_from: string;
   status: string;
+  topic: string;
+  updating_frequency: number;
 }
 
 interface ApiResponse {
@@ -218,9 +220,11 @@ const CreateDataService = () => {
       data_app_url: ""
     },
     title: '',
-    type:"data",
+    type: "data",
     active_to: buildDefaultActiveTo(),
-    active_from: new Date().toISOString()
+    active_from: new Date().toISOString(),
+    topic: "",
+    updating_frequency: 60
   };
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -529,28 +533,37 @@ const CreateDataService = () => {
 
         </ListGroup>
       </Card>
-      {/* <Card >
-        <h3 className="list-group-item-heading" style={{ paddingLeft: "20px", paddingTop: "20px" }}> <b>Date Restrictions</b></h3>
-        <h6 className="list-group-item-heading" style={{ paddingLeft: " 20px" }}>On This Section You Can Restrict Access At A Specific Date Time Range For Service</h6>
+      <Card >
+        <h3 className="list-group-item-heading" style={{ paddingLeft: "20px", paddingTop: "20px" }}> <b>NATS parameters</b></h3>
+        <h6 className="list-group-item-heading" style={{ paddingLeft: " 20px" }}>Select topic and updating frequency for the NATS plugin</h6>
         <ListGroup variant="flush">
           <ListGroup.Item>
-            {data && <Row form>
-              <Col >
+            <Row form>
+              <Col md={6}>
                 <FormGroup>
-                  <Label for="serviceCode">Active from </Label>
-                  <Input type="datetime-local" name="activeFrom" id="activeFrom" placeholder={formatDateFromData(data?.active_from)} onChange={handleDateChangeActiveFrom} />
+                  <Label for="serviceCode">Topic</Label>
+                  <Input type="text" name="topic" id="topic" value={data?.topic} onChange={(e) => handleChange('topic', e.target.value)} />
                 </FormGroup>
               </Col>
-              <Col  >
-                <FormGroup >
-                  <Label for="serviceCode">Active to</Label>
-                  <Input type="datetime-local" name="activeTo" id="activeTo" placeholder={formatDateFromData(data?.active_to)} onChange={handleDateChangeActiveTo} />
-                </FormGroup >
+              <Col md={6}>
+                <FormGroup>
+                  <Label for="serviceName">Updating Frequency (60 is the default value)</Label>
+                  <Input type="text" name="updating_frequency" id="updating_frequency" value={data?.updating_frequency} onChange={(e) => handleChange('updating_frequency', e.target.value)} />
+                </FormGroup>
               </Col>
-            </Row>}
+            </Row>
           </ListGroup.Item>
         </ListGroup>
-      </Card> */}
+        {/* <ListGroup variant="flush">
+            <ListGroup.Item><Label for="title">Topic</Label>
+            <Input type="text" name="title" id="title" value={data?.topic} onChange={(e) => handleChange('topic', e.target.value)} />
+          </ListGroup.Item>
+
+          <ListGroup.Item><Label for="title">Updating Frequency</Label>
+            <Input type="text" name="title" id="title" value={data?.updating_frequency} onChange={(e) => handleChange('updating_frequency', e.target.value)} />
+          </ListGroup.Item>
+        </ListGroup> */}
+      </Card>
 
       <Card >
         <h3 className="list-group-item-heading" style={{ paddingLeft: "20px", paddingTop: "20px" }}> <b>Semantic Definition</b> </h3>

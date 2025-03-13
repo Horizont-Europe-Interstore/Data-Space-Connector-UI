@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosError } from 'axios';
-import { Modal, Container, Row, Button, Card } from 'react-bootstrap';
+import { Modal, Container,  Button, Card } from 'react-bootstrap';
 import Inner from '@app/components/helpers/InnerHtml';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import Pagination from '@app/components/helpers/Pagination';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 import { ChangingOrder } from '@app/components/helpers/OrderingStateChange';
-const API_URL_FILTERS = "datalist/left-grouping/my_offered_services";
+const API_URL_FILTERS = "datalist/left-grouping/my_push_sub";
 interface CategorizeProps {
     show: boolean;
     handleClose: () => void;
     onModalDataChange: (modalName: string, value: string) => void;
 }
-type modalFilter = {
-    name: string;
-    id: string;
-}
+
 interface ITableData {
     category: string;
     cf_code_2: string;
@@ -26,7 +22,9 @@ interface ITableData {
     title: string;
     cf_profile_selector: string;
     created_on_offer: string;
-    cf_type:string
+    cf_type:string;
+    cf_name: string;
+    cf_username: string;
 }
 interface IFilter {
     id: string | null;
@@ -48,6 +46,7 @@ const ServicePush: React.FC<CategorizeProps> = ({ show, handleClose, onModalData
     const [columnToFilter, setcolumnToFilter] = useState({ name: '', value: '' });
     const [createdOnOrdering, setCreatedOnOrdering] = useState("");
     const [categoryOrdering, setCategoryOrdering] = useState("");
+    const [cfUsernameOrdering, setCfUsernameOrdering] = useState("");
     const [titleOrdering, setTitleOrdering] = useState("");
 
     function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
@@ -56,6 +55,7 @@ const ServicePush: React.FC<CategorizeProps> = ({ show, handleClose, onModalData
                 setCreatedOnOrdering(ChangingOrder(createdOnOrdering))
                 setTitleOrdering("")
                 setCategoryOrdering("")
+                setCfUsernameOrdering("")
                 setcolumnToFilter(prevState => ({
                     ...prevState,
                     name: "created_on",
@@ -68,6 +68,7 @@ const ServicePush: React.FC<CategorizeProps> = ({ show, handleClose, onModalData
                 setTitleOrdering(ChangingOrder(titleOrdering))
                 setCreatedOnOrdering("")
                 setCategoryOrdering("")
+                setCfUsernameOrdering("")
                 setcolumnToFilter(prevState => ({
                     ...prevState,
                     name: "title",
@@ -80,10 +81,23 @@ const ServicePush: React.FC<CategorizeProps> = ({ show, handleClose, onModalData
                 setCategoryOrdering(ChangingOrder(categoryOrdering))
                 setTitleOrdering("")
                 setCreatedOnOrdering("")
+                setCfUsernameOrdering("")
                 setcolumnToFilter(prevState => ({
                     ...prevState,
                     name: "category",
                     value: categoryOrdering
+                }));
+                break;
+            }
+            case "cf_username": {
+                setCfUsernameOrdering(ChangingOrder(cfUsernameOrdering))
+                setTitleOrdering("")
+                setCreatedOnOrdering("")
+                setCategoryOrdering("")
+                setcolumnToFilter(prevState => ({
+                    ...prevState,
+                    name: "cf_username",
+                    value: cfUsernameOrdering
                 }));
                 break;
             }
@@ -109,19 +123,19 @@ const ServicePush: React.FC<CategorizeProps> = ({ show, handleClose, onModalData
             let filter = "";
             if (expandedFiltersByLevel[0]) {
 
-                filter = `${encodeURIComponent("category_group")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
+                filter = `${encodeURIComponent("category_grouping")}=${encodeURIComponent(expandedFiltersByLevel[0])}`;
             }
             if (expandedFiltersByLevel[1]) {
 
-                filter = filter + `&${encodeURIComponent("service_group")}=${encodeURIComponent(expandedFiltersByLevel[1])}`;
+                filter = filter + `&${encodeURIComponent("service_grouping")}=${encodeURIComponent(expandedFiltersByLevel[1])}`;
             }
             if (expandedFiltersByLevel[2]) {
 
-                filter = filter + `&${encodeURIComponent("business_object_group")}=${encodeURIComponent(expandedFiltersByLevel[2])}`;
+                filter = filter + `&${encodeURIComponent("business_object_grouping")}=${encodeURIComponent(expandedFiltersByLevel[2])}`;
             }
             if (expandedFiltersByLevel[3]) {
 
-                filter = filter + `&${encodeURIComponent("users_group")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
+                filter = filter + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
             }
             try {
                 //modifica Pasquale 
@@ -134,7 +148,7 @@ const ServicePush: React.FC<CategorizeProps> = ({ show, handleClose, onModalData
                 // const response = await axiosWithInterceptorInstance.get(`/datalist/my_offered_services/page/${currentPage - 1}?${filter}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
                 //nuovo servizio
                 // const response = await axiosWithInterceptorInstance.get(`/datalist/my_push_sub/page/${currentPage - 1}?${filter}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
-                const response = await axiosWithInterceptorInstance.get(`/datalist/my_push_sub/page/${currentPage - 1}?status=accept&cf_type=push`);
+                const response = await axiosWithInterceptorInstance.get(`/datalist/my_push_sub/page/${currentPage - 1}?status=accept&cf_type=push&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}&${filter}`);
                // scenario push/ subscription/listpagingsubscriptio
                 // {{scheme}}://{{host}}/api/datalist/my_push_sub/page/0?status=accept&cf_type=push
 
@@ -247,6 +261,9 @@ const ServicePush: React.FC<CategorizeProps> = ({ show, handleClose, onModalData
                                                 <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(categoryOrdering, "category")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
                                                     {categoryOrdering === "desc" && <i className="fas fa-sort-up"></i>}{categoryOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!categoryOrdering && <i className="fas fa-sort"></i>}
                                                 </button></th>
+                                                <th style={{ textAlign: "center", verticalAlign: "middle" }}>Service Provider <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(cfUsernameOrdering, "cf_username")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                                                    {cfUsernameOrdering === "desc" && <i className="fas fa-sort-up"></i>}{cfUsernameOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!cfUsernameOrdering && <i className="fas fa-sort"></i>}
+                                                </button></th>
                                                 <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(titleOrdering, "title")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
                                                     {titleOrdering === "desc" && <i className="fas fa-sort-up"></i>}{titleOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!titleOrdering && <i className="fas fa-sort"></i>}
                                                 </button> </th>
@@ -264,6 +281,7 @@ const ServicePush: React.FC<CategorizeProps> = ({ show, handleClose, onModalData
                                                         +
                                                     </button></td>
                                                     <td>{Inner(item.category)}</td>
+                                                    <td>{item.cf_name + " - " + item.cf_username}</td>
                                                     <td>{item.title}</td>
                                                     <td>{item.created_on_offer}</td>
                                                     <td>{item.profile_description}</td>

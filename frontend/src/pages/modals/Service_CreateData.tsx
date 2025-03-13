@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosError } from 'axios';
-import { Modal, Container, Row, Button, Card } from 'react-bootstrap';
+import { Modal, Container, Button, Card } from 'react-bootstrap';
 import Inner from '@app/components/helpers/InnerHtml';
 import checkLevel from '@app/components/helpers/CheckLevel';
 import Pagination from '@app/components/helpers/Pagination';
@@ -12,10 +11,7 @@ interface CategorizeProps {
     handleClose: () => void;
     onModalDataChange: (modalName: string, value: string) => void;
 }
-type modalFilter = {
-    name: string;
-    id: string;
-}
+
 interface ITableData {
     category: string;
     cf_code_2: string;

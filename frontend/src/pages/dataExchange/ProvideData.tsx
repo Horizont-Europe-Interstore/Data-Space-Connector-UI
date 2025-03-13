@@ -8,7 +8,6 @@ import Service from '../modals/Service';
 import BusinnesObject from '../modals/BusinnesObject';
 import { EditDataEntity } from '@app/components/helpers/Buttons';
 import { NewDataEntity } from '@app/components/helpers/Buttons';
-import { NewDataEntityPush } from '@app/components/helpers/Buttons';
 import Pagination from '@app/components/helpers/Pagination';
 import { Card } from 'reactstrap';
 import { format } from 'date-fns';
@@ -21,6 +20,7 @@ interface IFilterValues {
   data_catalog_category_name: string;
   id: string;
   title: string;
+  cf_title: string;
   created_on: string;
   profile_selector: string;
   description: string;
@@ -40,6 +40,7 @@ interface ITableData {
   data_catalog_category_code: string;
   id: string;
   title: string;
+  cf_title: string;
   created_on: string;
   profile_selector: string;
   description: string;
@@ -61,7 +62,8 @@ const ProvideData: React.FC = () => {
     profile_selector: "",
     description: "",
     status: "",
-    subscriptions: ""
+    subscriptions: "",
+    cf_title: ""
   });
   const [modalStates, setModalStates] = useState({
     categoriesModal: false,
@@ -83,14 +85,15 @@ const ProvideData: React.FC = () => {
   const [columnToFilter, setcolumnToFilter] = useState({ name: '', value: '' });
   const [categoryOrdering, setCategoryOrdering] = useState("");
   const [titleOrdering, setTitleOrdering] = useState("");
+  const [cfNameOrdering, setCfNameOrdering] = useState("");
   const [createdOnOrdering, setCreatedOnOrdering] = useState("");
-  const [profileFormatOrdering, setProfileFormatOrdering] = useState("");
-  const [profileDescriptionOrdering, setProfileDescriptionOrdering] = useState("");
+  const [pageSize, setPageSize] = useState(20);
   function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
     switch (columnToFilter) {
       case "category": {
         setCategoryOrdering(ChangingOrder(categoryOrdering))
         setTitleOrdering("")
+        setCfNameOrdering("")
         setCreatedOnOrdering("")
         setcolumnToFilter(prevState => ({
           ...prevState,
@@ -103,6 +106,7 @@ const ProvideData: React.FC = () => {
       case "title": {
         setTitleOrdering(ChangingOrder(titleOrdering))
         setCategoryOrdering("")
+        setCfNameOrdering("")
         setCreatedOnOrdering("")
         setcolumnToFilter(prevState => ({
           ...prevState,
@@ -115,6 +119,7 @@ const ProvideData: React.FC = () => {
       case "created_on": {
         setCreatedOnOrdering(ChangingOrder(createdOnOrdering))
         setCategoryOrdering("")
+        setCfNameOrdering("")
         setTitleOrdering("")
         setcolumnToFilter(prevState => ({
           ...prevState,
@@ -124,6 +129,20 @@ const ProvideData: React.FC = () => {
 
         break;
       }
+      case "cf_title": {
+        setCfNameOrdering(ChangingOrder(cfNameOrdering))
+        setCreatedOnOrdering("")
+        setCategoryOrdering("")
+        setTitleOrdering("")
+        setcolumnToFilter(prevState => ({
+          ...prevState,
+          name: "cf_title",
+          value: cfNameOrdering
+        }));
+
+        break;
+      }
+
 
     }
   }
@@ -159,7 +178,7 @@ const ProvideData: React.FC = () => {
   const generateFilterQuery = () => {
     let query = '';
     let index = 0;
-    const filterKeys: (keyof IFilterValues)[] = ['data_catalog_category_name', 'title', 'created_on', 'profile_selector', 'description', 'status', 'subscriptions'];
+    const filterKeys: (keyof IFilterValues)[] = ['data_catalog_category_name', 'title', 'cf_title', 'created_on', 'profile_selector', 'description', 'status', 'subscriptions'];
     filterKeys.forEach(key => {
       if (filterValues[key]) {
         if (index > 0) {
@@ -224,9 +243,10 @@ const ProvideData: React.FC = () => {
         filterQuery = filterQuery + `&${encodeURIComponent("users_grouping")}=${encodeURIComponent(expandedFiltersByLevel[3])}`;
       }
 
-      const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(`${API_URL_DATA}${currentPage - 1}?${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
+      const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number,pageSize:number  }>(`${API_URL_DATA}${currentPage - 1}?&cf_type=data&${filter2Query}${filterQuery}&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}`);
       setData(response.data.listContent);
       setTotalPages(response.data.totalPages);
+      setPageSize(response.data.pageSize)
     } catch (error: unknown) {
       console.error('Error fetching data:', error);
     }
@@ -318,17 +338,16 @@ const ProvideData: React.FC = () => {
       <div className='row'>
 
         <div className='col'  >
-       
           <h2> <i className="fas fa-cloud-upload-alt nav-icon" style={{ paddingRight: "8px" }}> </i> <b>Data Provided</b></h2>
           <h5>Navigate to your Data Provided</h5>
         </div>
 
-        <div className='col' style={{ marginLeft:"auto", whiteSpace:"nowrap" , display:"flex"}}>
-          <div className="content-container" style={{marginLeft:"auto", display:"flex"}}> 
-            <Button className="btn btn-success" onClick={() => NewDataEntity()} data-toggle="tooltip" data-placement="top" title="Provide a new data" style={{ marginRight: "10px", height:"50%" }}>
-            New Data  <i className="fa fa-plus"></i>
-          </Button>
-         
+        <div className='col' style={{ marginLeft: "auto", whiteSpace: "nowrap", display: "flex" }}>
+          <div className="content-container" style={{ marginLeft: "auto", display: "flex" }}>
+            <Button className="btn btn-success" onClick={() => NewDataEntity()} data-toggle="tooltip" data-placement="top" title="Provide a new data" style={{ marginRight: "10px", height: "50%" }}>
+              New Data  <i className="fa fa-plus"></i>
+            </Button>
+
           </div>
         </div>
 
@@ -409,6 +428,11 @@ const ProvideData: React.FC = () => {
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(categoryOrdering, "category")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
                     {categoryOrdering === "desc" && <i className="fas fa-sort-up"></i>}{categoryOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!categoryOrdering && <i className="fas fa-sort"></i>}
                   </button></th>
+
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Offered Service <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(cfNameOrdering, "cf_title")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {cfNameOrdering === "desc" && <i className="fas fa-sort-up"></i>}{cfNameOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!cfNameOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>
+
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(titleOrdering, "title")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
                     {titleOrdering === "desc" && <i className="fas fa-sort-up"></i>}{titleOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!titleOrdering && <i className="fas fa-sort"></i>}
                   </button></th>
@@ -424,6 +448,14 @@ const ProvideData: React.FC = () => {
                   <td></td>
                   <td></td>
                   <td></td>
+                  <td><Form.Control
+                    type="text"
+                    name="cf_title"
+                    placeholder="Filter"
+                    value={filterValues.cf_title}
+                    onChange={handleInputChange}
+                  /></td>
+
                   <td><Form.Control
                     type="text"
                     name="title"
@@ -450,7 +482,7 @@ const ProvideData: React.FC = () => {
 
                 {data.map((item, index) => (
                   <tr key={index}>
-                    <th scope="row">{(((currentPage - 1)) * 10) + index + 1}</th>
+                    <th scope="row">{(((currentPage - 1)) * pageSize) + index + 1}</th>
                     <td>
                       <div className='row'>
                         <Button variant="outline-light" className="btn btn-primary" onClick={() => EditDataEntity(item?.id)} data-toggle="tooltip" data-placement="top" title="Change the data provided">
@@ -460,6 +492,7 @@ const ProvideData: React.FC = () => {
                       </div>
                     </td>
                     <td>{item.data_catalog_category_code + " - " + item.data_catalog_category_name}</td>
+                    <td>{item.cf_title}</td>
                     <td>{item.title}</td>
                     <td>{format(new Date(item.created_on), 'dd/MM/yyyy HH:mm')}</td>
                     <td>{item.description}</td>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosError } from 'axios';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -28,8 +27,11 @@ interface IFilterValues {
   subscriptions: string;
   file_name: string;
   provider_username: string;
+  provider_company_name: string;
+  data_provider_username_1:string;
   data_title: string;
   offering_title:string;
+  data_provider_company_name_1:string;
 }
 interface IFilter {
   id: string | null;
@@ -51,8 +53,13 @@ interface ITableData {
   subscriptions: string;
   file_name: string;
   provider_username: string;
+  provider_company_name: string;
   data_title: string;
   offering_title: string;
+  service_type: string;
+  cf_type:string;
+  data_provider_company_name_1: string;
+  data_provider_username_1: string;
 }
 
 const ConsumeData: React.FC = () => {
@@ -60,6 +67,7 @@ const ConsumeData: React.FC = () => {
   const [filters, setFilters] = useState<IFilter[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
   type ExpandedFiltersByLevel = { [level: number]: string | null };
   const [expandedFiltersByLevel, setExpandedFiltersByLevel] = useState<ExpandedFiltersByLevel>({});
   const [isPushEnabled, setIsPushEnabled] = useState(false);
@@ -74,8 +82,11 @@ const ConsumeData: React.FC = () => {
     subscriptions: "",
     file_name: "",
     provider_username: "",
+    data_provider_username_1:"",
     data_title: "",
-    offering_title:""
+    offering_title:"",
+    data_provider_company_name_1:"",
+    provider_company_name: "",
   });
 
   const [modalStates, setModalStates] = useState({
@@ -149,17 +160,26 @@ const ConsumeData: React.FC = () => {
         break;
       }
       case "provider_username": {
+       
         setUserOfferingOrdering(ChangingOrder(userOfferingOrdering))
         setCategoryOrdering("")
         setTitleOrdering("")
         setCreatedOnOrdering("")
         setDataTitleOrdering("")
-        setcolumnToFilter(prevState => ({
-          ...prevState,
-          name: "provider_username",
-          value: userOfferingOrdering
-        }));
+        if (isPushEnabled){
 
+          setcolumnToFilter(prevState => ({
+            ...prevState,
+            name: "data_provider_company_name_1",
+            value: userOfferingOrdering
+          }));
+        }else{ //is data scenario
+          setcolumnToFilter(prevState => ({
+            ...prevState,
+            name: "provider_company_name",
+            value: userOfferingOrdering
+          }));
+        }
         break;
       }
       case "data_title": {
@@ -176,7 +196,7 @@ const ConsumeData: React.FC = () => {
 
         break;
       }
-
+     
     }
   }
 
@@ -209,7 +229,7 @@ const ConsumeData: React.FC = () => {
   const generateFilterQuery = () => {
     let query = '';
     let index = 0;
-    const filterKeys: (keyof IFilterValues)[] = ['data_catalog_category_name', 'title', 'created_on', 'profile_selector', 'data_description', 'status', 'subscriptions', 'file_name', 'provider_username', 'data_title', 'offering_title'];
+    const filterKeys: (keyof IFilterValues)[] = ['data_catalog_category_name', 'title', 'created_on', 'profile_selector', 'data_description', 'status', 'subscriptions', 'file_name', 'provider_username', 'data_provider_username_1', 'data_title', 'offering_title', 'data_provider_company_name_1'];
 
     filterKeys.forEach(key => {
       if (filterValues[key]) {
@@ -295,14 +315,16 @@ const ConsumeData: React.FC = () => {
       setTotalPages(response.data.totalPages); */
 
       if (isPushEnabled) {
-        const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(API_URL_DATA_PUSH + (currentPage - 1) + `?service_type=push&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}&${filter2Query}${filterQuery}&ft_created_by=` + localStorage.getItem("uid"));
+        const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize:number }>(API_URL_DATA_PUSH + (currentPage - 1) + `?service_type=push&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}&${filter2Query}${filterQuery}&ft_created_by=` + localStorage.getItem("uid"));
         setData(response.data.listContent);
         setTotalPages(response.data.totalPages);
+        setPageSize(response.data.pageSize)
         //setPageSize(response.data.pageSize)
       } else {
-        const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number }>(API_URL_DATA + (currentPage - 1) + `?service_type=&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}&${filter2Query}${filterQuery}&ft_created_by=` + localStorage.getItem("uid"));
+        const response = await axiosWithInterceptorInstance.get<{ listContent: ITableData[], totalPages: number, pageSize:number }>(API_URL_DATA + (currentPage - 1) + `?cf_type=data&sel-sort-code=${columnToFilter.name}&sel-sort-order=${columnToFilter.value}&${filter2Query}${filterQuery}&ft_created_by=` + localStorage.getItem("uid"));
         setData(response.data.listContent);
         setTotalPages(response.data.totalPages);
+        setPageSize(response.data.pageSize)
         //setPageSize(response.data.pageSize)
       }
     } catch (error: unknown) {
@@ -497,12 +519,15 @@ const ConsumeData: React.FC = () => {
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Category <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(categoryOrdering, "category")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
                     {categoryOrdering === "desc" && <i className="fas fa-sort-up"></i>}{categoryOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!categoryOrdering && <i className="fas fa-sort"></i>}
                   </button></th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Title <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(titleOrdering, "title")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>Offered Service <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(titleOrdering, "title")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
                     {titleOrdering === "desc" && <i className="fas fa-sort-up"></i>}{titleOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!titleOrdering && <i className="fas fa-sort"></i>}
                   </button></th>
-                  <th style={{ textAlign: "center", verticalAlign: "middle" }}>User Offering <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(userOfferingOrdering, "provider_username")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                  {!isPushEnabled && <th style={{ textAlign: "center", verticalAlign: "middle" }}>User Offering <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(userOfferingOrdering, "provider_username")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
                     {userOfferingOrdering === "desc" && <i className="fas fa-sort-up"></i>}{userOfferingOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!userOfferingOrdering && <i className="fas fa-sort"></i>}
-                  </button></th>
+                  </button></th>}
+                  {isPushEnabled && <th style={{ textAlign: "center", verticalAlign: "middle" }}>Data provider <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(userOfferingOrdering, "provider_username")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
+                    {userOfferingOrdering === "desc" && <i className="fas fa-sort-up"></i>}{userOfferingOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!userOfferingOrdering && <i className="fas fa-sort"></i>}
+                  </button></th>}
                   <th style={{ textAlign: "center", verticalAlign: "middle" }}>Created On <button className="btn btn-light text-end" onClick={() => ChangingOrder_inside(createdOnOrdering, "created_on")} style={{ paddingLeft: "10 px", scale: "0.6" }} >
                     {createdOnOrdering === "desc" && <i className="fas fa-sort-up"></i>}{createdOnOrdering === "asc" && <i className="fas fa-sort-down"></i>}{!createdOnOrdering && <i className="fas fa-sort"></i>}
                   </button></th>
@@ -526,13 +551,21 @@ const ConsumeData: React.FC = () => {
                     onChange={handleInputChange}
                   /></td>
 
-                  <td><Form.Control
+                  {isPushEnabled && <td><Form.Control
+                    type="text"
+                    name="data_provider_username_1"
+                    placeholder="Filter"
+                    value={filterValues.data_provider_username_1}
+                    onChange={handleInputChange}
+                  /></td>}
+
+                  {!isPushEnabled&&<td><Form.Control
                     type="text"
                     name="provider_username"
                     placeholder="Filter"
                     value={filterValues.provider_username}
                     onChange={handleInputChange}
-                  /></td>
+                  /></td>}
 
 
                   <td><Form.Control
@@ -561,7 +594,7 @@ const ConsumeData: React.FC = () => {
 
                 {data.map((item, index) => (
                   <tr key={index}>
-                    <th scope="row">{(((currentPage - 1)) * 10) + index + 1}</th>
+                    <th scope="row">{(((currentPage - 1)) * pageSize) + index + 1}</th>
                     <td>
                       <div className='row'>
                         <Button variant="outline-light" className="btn btn-primary" onClick={() => DetailDataEntity(item?.id)} data-toggle="tooltip" data-placement="top" title="View data details">
@@ -573,11 +606,12 @@ const ConsumeData: React.FC = () => {
 
                     <td>{item.data_catalog_service_code + " -  " + item.data_catalog_category_name}</td>
                     <td>{item.offering_title}</td>
-                    <td>{item.provider_username}</td>
+                    {item.cf_type ==="data" && <td>{ item.provider_company_name + "  " + item.provider_username}</td>}
+                    {item.service_type ==="push" && <td>{item.data_provider_company_name_1 + "  "+ item.data_provider_username_1  }</td>}
                     <td>{format(new Date(item.created_on), 'dd/MM/yyyy HH:mm')}</td>
                     <td>{item.data_title}</td>
                     <td>{item.data_description}</td>
-
+                   
                   </tr>
                 ))}
               </tbody>
