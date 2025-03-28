@@ -15,7 +15,7 @@ import { Form, InputGroup } from 'react-bootstrap';
 import setGlobalHeader from '@app/components/helpers/SetGlobalHeader';
 import axiosWithInterceptorInstance from '@app/components/helpers/AxiosConfig';
 
-const imageUrl = "./img/map-labs.jpg";
+const imageUrl = "./img/theme/login-background.jpg";
 
 const Login = () => {
   const [isAuthLoading, setAuthLoading] = useState(false);

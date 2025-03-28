@@ -70,7 +70,7 @@ const Main = () => {
         <div className="preloader flex-column justify-content-center align-items-center">
           <PfImage
             className="animation__shake"
-            src="/img/Immagine 2024-01-05 153814.png"
+            src="/img/twineu-logo.png"
             alt="EnergyDataspace Connector"
             height={60}
             width={60}

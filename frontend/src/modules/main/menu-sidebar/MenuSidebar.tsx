@@ -122,7 +122,7 @@ const MenuSidebar = () => {
     <aside className={`main-sidebar elevation-4 ${sidebarSkin}`}>
       <Link to="/" className="brand-link">
         <StyledBrandImage
-          src="/img/Immagine 2024-01-05 153814.png"
+          src="/img/theme/logo.png"
           alt="AdminLTE Logo"
           width={33}
           height={33}
