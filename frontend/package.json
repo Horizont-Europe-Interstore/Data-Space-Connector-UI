@@ -1,6 +1,6 @@
 {
   "name": "adminlte-3-react",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "private": true,
   "proxy": "https://smart-energy.eng.it/api",
   "type": "module",

@@ -43,6 +43,7 @@ interface ITableData {
   cf_type: string;
   cf_push_uri: string;
   created_by_username: string;
+  cf_id_1: string;
 }
 
 const Catalog: React.FC = () => {
@@ -54,7 +55,7 @@ const Catalog: React.FC = () => {
   const [filters, setFilters] = useState<IFilter[]>([]);
   type ExpandedFiltersByLevel = { [level: number]: string | null };
   const [expandedFiltersByLevel, setExpandedFiltersByLevel] = useState<ExpandedFiltersByLevel>({});
-  const [isPushEnabled, setIsPushEnabled] = useState( type==="push" ? "push" :  ((window as any)["env"]["isPushEnabled"] ? "" : "data")    ); //type==="push" ? true : false
+  const [isPushEnabled, setIsPushEnabled] = useState(type === "push" ? "push" : ((window as any)["env"]["isPushEnabled"] ? "" : "data")); //type==="push" ? true : false
   const [filterValues, setFilterValues] = useState<IFilterValues>({
     created_by_username: "",
     title: "",
@@ -71,6 +72,7 @@ const Catalog: React.FC = () => {
   const [offeringOrdering, setofferingOrdering] = useState("");
   const [titleOrdering, setTitleOrdering] = useState("");
   const [createdOnOrdering, setCreatedOnOrdering] = useState("");
+  const [loggedUser, setLoggedUser] = useState(localStorage.getItem("uid") || "");
   function ChangingOrder_inside(stateToChange: any, columnToFilter: string) {
     switch (columnToFilter) {
 
@@ -512,10 +514,10 @@ const Catalog: React.FC = () => {
                             <i className="fas fa-pencil-alt"></i>
                           </Button></div>
                         <div className='col'>
-                          <Button variant="outline-light" className="btn btn-primary" onClick={() => RequestsOnService(item.cf_id)} data-bs-toggle="tooltip" data-placement="top" title="View your offered service's requests">
+                          {loggedUser === item.cf_id_1 &&<Button variant="outline-light" className="btn btn-primary" onClick={() => RequestsOnService(item.cf_id)} data-bs-toggle="tooltip" data-placement="top" title="View your offered service's requests">
                             <i className="fas fa-handshake"></i>
 
-                          </Button></div>
+                          </Button>}</div>
                       </div>
                     </td>
 
@@ -527,13 +529,13 @@ const Catalog: React.FC = () => {
                     <td>
                       <div style={{
                         display: '-webkit-box',
-                        WebkitLineClamp: 3, 
+                        WebkitLineClamp: 3,
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'normal'
                       }}>
-                        <span dangerouslySetInnerHTML={{ __html: item.subscriptions }} data-bs-toggle="tooltip" data-placement="top" title={Inner(item.subscriptions)}/>
+                        <span dangerouslySetInnerHTML={{ __html: item.subscriptions }} data-bs-toggle="tooltip" data-placement="top" title={Inner(item.subscriptions)} />
 
                       </div>
                     </td>

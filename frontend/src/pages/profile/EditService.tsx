@@ -27,7 +27,9 @@ interface Data_catalog_business_object {
   name: string;
 
 }
-
+interface User_1_1_obj {
+  id: string;
+}
 interface Data_catalog_data_offerings {
   id: string;
   title: string;
@@ -51,6 +53,7 @@ interface Data_catalog_data_offerings {
   push_uri: string;
   topic: string;
   updating_frequency: number;
+  user_1_1_obj: User_1_1_obj;
 }
 
 
@@ -66,6 +69,7 @@ const EditService = () => {
   const [data, setData] = useState<Data_catalog_data_offerings | null>(null);
   const [isLoading1, setIsLoading1] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
+  const [loggedUser, setLoggedUser] = useState(localStorage.getItem("uid") || "");
   const formatDateFromData = (dateString: string): string => {
     if (!dateString) {
       return "";
@@ -343,14 +347,14 @@ const EditService = () => {
           <div className="d-grid gap-2 d-md-flex justify-content-md-end">
             <div className="d-grid gap-2 d-md-block">
 
-              {!isLoading && <button className="btn btn-primary me-md-2" onClick={() => saveRequest(false)} style={{ marginRight: '10px' }}>
+              {!isLoading && loggedUser === data?.user_1_1_obj.id && loggedUser === data?.user_1_1_obj.id && <button className="btn btn-primary me-md-2" onClick={() => saveRequest(false)} style={{ marginRight: '10px' }}>
                 Save
               </button>}
-              {data?.status === "active" && !isLoading && <button className="btn btn-danger" onClick={() => disableOfferedService()} style={{ marginLeft: '10px' }}>
+              {data?.status === "active" && loggedUser === data?.user_1_1_obj.id && !isLoading && <button className="btn btn-danger" onClick={() => disableOfferedService()} style={{ marginLeft: '10px' }}>
                 Disable offered Service
               </button>}
 
-              {data?.status === "disabled" && !isLoading && <button className="btn btn-success" onClick={() => enableOfferedService()} style={{ marginLeft: '10px' }}>
+              {data?.status === "disabled" && loggedUser === data?.user_1_1_obj.id && !isLoading && <button className="btn btn-success" onClick={() => enableOfferedService()} style={{ marginLeft: '10px' }}>
                 Enable offered Service
               </button>}
 
@@ -422,20 +426,20 @@ const EditService = () => {
             <Row form>
               {data?.type === "push" && <Col md={6}>
                 <FormGroup>
-                  <Label for="serviceCode">Type</Label>
+                  <Label for="categoryCode">Type</Label>
                   <Input type="text" name="categoryCode" id="categoryCode" placeholder={data?.type} disabled />
                 </FormGroup>
               </Col>}
               {data?.type !== "push" && <Col >
                 <FormGroup>
-                  <Label for="serviceCode">Type</Label>
+                  <Label for="categoryCode">Type</Label>
                   <Input type="text" name="categoryCode" id="categoryCode" placeholder={data?.type} disabled />
                 </FormGroup>
               </Col>}
               {data?.type === "push" && <Col md={6}>
                 <FormGroup>
-                  <Label for="serviceName">Push URI</Label>
-                  <Input type="text" name="categoryName" id="categoryName" placeholder={data?.push_uri} disabled />
+                  <Label for="pushuri">Push URI</Label>
+                  <Input type="text" name="pushuri" id="pushuri" placeholder="enter Push URI" value={data?.push_uri} onChange={(e) => handleChange('push_uri', e.target.value)} />
                 </FormGroup>
               </Col>}
             </Row>
@@ -448,7 +452,7 @@ const EditService = () => {
         <h6 style={{ paddingLeft: " 20px" }}>On This Section You Can Restrict Access At A Specific Date Time Range For Service.</h6>
         <ListGroup variant="flush">
           <ListGroup.Item>
-            {data && <Row form>
+            {data && loggedUser === data?.user_1_1_obj.id && <Row form>
               <Col >
                 <FormGroup>
                   <Label for="activeFrom">Active from</Label>
@@ -470,12 +474,11 @@ const EditService = () => {
 
             </Row>}
 
-
-            {data && <Row form>
+            {data && loggedUser !== data?.user_1_1_obj.id && <Row form>
               <Col >
                 <FormGroup>
-                  <Label for="activeTo">Active to</Label>
-                  <Input type="datetime-local" name="activeTo" id="activeTo" value={formatDateFromData(data?.active_to)} onChange={handleDateChangeActiveTo} />
+                  <Label for="activeFrom">Active from</Label>
+                  <Input type="datetime-local" name="activeFrom" id="activeFrom" value={formatDateFromData(data?.active_from)} onChange={handleDateChangeCreatedOn} disabled />
                 </FormGroup>
               </Col>
               <Col md={3} className="d-flex justify-content-center align-items-center">
@@ -483,9 +486,39 @@ const EditService = () => {
                   <Label check className="mb-0">
                     <Input
                       type="checkbox"
+                      checked={data.active_from_enable === 1}
+                      onChange={handleActiveFromEnableChange}
+                      disabled
+                    />
+                    {' '}The service is valid from the date
+                  </Label>
+                </FormGroup>
+              </Col>
+
+            </Row>}
+
+            {data && <Row form>
+              <Col >
+                <FormGroup>
+                  <Label for="activeTo">Active to</Label>
+                  {loggedUser === data?.user_1_1_obj.id &&<Input type="datetime-local" name="activeTo" id="activeTo" value={formatDateFromData(data?.active_to)} onChange={handleDateChangeActiveTo}  />}
+                  {loggedUser !== data?.user_1_1_obj.id &&<Input type="datetime-local" name="activeTo" id="activeTo" value={formatDateFromData(data?.active_to)} onChange={handleDateChangeActiveTo} disabled />}
+                </FormGroup>
+              </Col>
+              <Col md={3} className="d-flex justify-content-center align-items-center">
+                <FormGroup check className="d-flex align-items-center justify-content-md-center mb-0">
+                  <Label check className="mb-0">
+                    {loggedUser === data?.user_1_1_obj.id && <Input
+                      type="checkbox"
                       checked={data.active_to_enable === 1}
                       onChange={handleActiveToEnableChange}
-                    />
+                    />}
+                    {loggedUser !== data?.user_1_1_obj.id && <Input
+                      type="checkbox"
+                      checked={data.active_to_enable === 1}
+                      onChange={handleActiveToEnableChange}
+                      disabled
+                    />}
                     {' '}The service is valid until the date
                   </Label>
                 </FormGroup>
@@ -506,13 +539,15 @@ const EditService = () => {
                 <FormGroup>
                   <Label for="serviceCode">Topic</Label>
 
-                  <Input type="text" name="topic" id="topic" value={data?.topic} placeholder="Enter NATS topic" onChange={(e) => handleChange('topic', e.target.value)} />
+                  {loggedUser === data?.user_1_1_obj.id && <Input type="text" name="topic" id="topic" value={data?.topic} placeholder="Enter NATS topic" onChange={(e) => handleChange('topic', e.target.value)} />}
+                  {loggedUser !== data?.user_1_1_obj.id && <Input type="text" name="topic" id="topic" value={data?.topic} placeholder="Enter NATS topic" onChange={(e) => handleChange('topic', e.target.value)} disabled />}
                 </FormGroup>
               </Col>
               <Col md={6}>
                 <FormGroup>
                   <Label for="serviceName">Updating Frequency (60 is the default value)</Label>
-                  <Input type="text" name="updating_frequency" id="updating_frequency" value={data?.updating_frequency} placeholder="Enter updating frequency" onChange={(e) => handleChange('updating_frequency', e.target.value)} />
+                  {loggedUser === data?.user_1_1_obj.id && <Input type="text" name="updating_frequency" id="updating_frequency" value={data?.updating_frequency} placeholder="Enter updating frequency" onChange={(e) => handleChange('updating_frequency', e.target.value)} />}
+                  {loggedUser !== data?.user_1_1_obj.id && <Input type="text" name="updating_frequency" id="updating_frequency" value={data?.updating_frequency} placeholder="Enter updating frequency" onChange={(e) => handleChange('updating_frequency', e.target.value)} disabled />}
                 </FormGroup>
               </Col>
             </Row>
@@ -528,13 +563,21 @@ const EditService = () => {
           <ListGroup.Item><Label for="fileSchema">File schema: {data?.file_schema_filename}</Label>
             <div className='row d-flex flex-nowrap'>
               <div className='col'>
-                <Input
+                {loggedUser === data?.user_1_1_obj.id && <Input
                   type="file"
                   name="fileSchema"
                   id="fileSchema"
                   onChange={handleFileSchemaChange}
                   placeholder={data?.file_schema_filename}
-                />
+                />}
+                {loggedUser !== data?.user_1_1_obj.id && <Input
+                  type="file"
+                  name="fileSchema"
+                  id="fileSchema"
+                  onChange={handleFileSchemaChange}
+                  placeholder={data?.file_schema_filename}
+                  disabled
+                />}
               </div>
               {data?.file_schema && <div className='col-2'>
                 {!isLoading1 && <button className="btn btn-primary" onClick={() => downloadFile("file_schema", "file_schema_filename")}>
@@ -568,13 +611,21 @@ const EditService = () => {
           <ListGroup.Item><Label for="id">File schema Sample: {data?.file_schema_sample_filename}</Label>
             <div className='row d-flex flex-nowrap'>
               <div className='col'>
-                <Input
+                {loggedUser === data?.user_1_1_obj.id && <Input
                   type="file"
                   name="fileSchema"
                   id="fileSchema"
                   onChange={handleFileSchemaSampleChange}
                   placeholder={data?.file_schema_sample_filename}
-                />
+                />}
+                {loggedUser !== data?.user_1_1_obj.id && <Input
+                  type="file"
+                  name="fileSchema"
+                  id="fileSchema"
+                  onChange={handleFileSchemaSampleChange}
+                  placeholder={data?.file_schema_sample_filename}
+                  disabled
+                />}
               </div>
               {data?.file_schema_sample && <div className='col-2'>
 
@@ -606,7 +657,7 @@ const EditService = () => {
             </div>
 
           </ListGroup.Item>
-          <ListGroup.Item>
+          {loggedUser === data?.user_1_1_obj.id && <ListGroup.Item>
             <Dropdown drop='up'>
               <Dropdown.Toggle id="dropdown-basic" >
                 Profile Format: {data?.profile_selector}
@@ -621,11 +672,28 @@ const EditService = () => {
               </Dropdown.Menu>
             </Dropdown>
 
-          </ListGroup.Item>
+          </ListGroup.Item>}
+          {loggedUser !== data?.user_1_1_obj.id && <ListGroup.Item disabled>
+            <Dropdown drop='up'>
+              <Dropdown.Toggle id="dropdown-basic" >
+                Profile Format: {data?.profile_selector}
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu>
+                <Dropdown.Item >------</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelect('Xml')}>Xml</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelect('Json Ld')}>Json Ld</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelect('Json')}>Json</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelect('Csv')}>Csv</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+
+          </ListGroup.Item>}
 
 
           <ListGroup.Item><Label for="id">Profile Description</Label>
-            <Input type="text" name="profileDescription" id="profileDescription" value={data?.profile_description} placeholder="Enter Profile Description" onChange={(e) => handleChange('profile_description', e.target.value)} />
+            {loggedUser === data?.user_1_1_obj.id &&<Input type="text" name="profileDescription" id="profileDescription" value={data?.profile_description} placeholder="Enter Profile Description" onChange={(e) => handleChange('profile_description', e.target.value)} />}
+            {loggedUser !== data?.user_1_1_obj.id &&<Input disabled type="text" name="profileDescription" id="profileDescription" value={data?.profile_description} placeholder="Enter Profile Description" onChange={(e) => handleChange('profile_description', e.target.value)} />}
           </ListGroup.Item>
 
 
